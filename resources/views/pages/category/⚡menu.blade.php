@@ -30,6 +30,7 @@ new class extends Component
 
 <div>
     <flux:modal name="create-category" class="md:w-150" x-on:close="$wire.resetForm()">
+    <form class="space-y-8" wire:submit.prevent="save">
             {{-- header --}}
             <div class="space-y-2">
                 <flux:heading size="lg" class="text-zinc-900 dark:text-white">
@@ -48,9 +49,11 @@ new class extends Component
                     wire:model="form.name"
                 />
 
-                <flux:textarea
+                <flux:input
                     label="Harga"
                     placeholder="Enter category price"
+                    type="number"
+                    step="0.01"
                     wire:model="form.harga"
                 />
             </div>

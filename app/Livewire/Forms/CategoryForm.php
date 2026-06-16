@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 class CategoryForm extends Form
 {
     public string $name = '';
-    public string $harga = '';
+    public $harga = null;
     public ?Category $category = null;
 
     public function rules(): array
