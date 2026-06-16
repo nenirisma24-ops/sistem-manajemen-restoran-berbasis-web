@@ -21,7 +21,7 @@ new class extends Component
 };
 ?>
 
-<divclass="max-w-7xl mx-auto space-y-4">
+<div class="max-w-7xl mx-auto space-y-4">
     <flux:heading size="xl" class="text-zinc-800 dark:text-white">Category</flux:heading>
     <flux:subheading size="lg" class="text-zinc-600 dark:text-zinc-400">Manage your categories</flux:subheading>
     <flux:separator variant="subtle" />
@@ -30,8 +30,8 @@ new class extends Component
         <flux:button variant="primary" icon="plus" color="primary">Category Menu</flux:button>
     </flux:modal.trigger>
 
-    <livewire:category.create />
-    <livewire:category.edit />
+    <livewire:pages::category.menu />
+    <livewire:pages::category.edit />
     <x-flash-message />
 
      {{-- table --}}
@@ -58,7 +58,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
-                            {{ $category->description ?? '-' }}
+                            {{ $category->harga ? 'Rp ' . number_format($category->harga, 0, ',', '.') : '-' }}
                         </flux:table.cell>
 
                         <flux:table.cell class="whitespace-nowrap">{{ $category->created_at->diffForHumans() }}</flux:table.cell>
@@ -75,7 +75,7 @@ new class extends Component
                                     <flux:menu.separator />
 
                                     {{-- <flux:menu.item variant="danger" icon="trash" wire:click="$dispatch('confirm-delete', id: $category->id)">Delete</flux:menu.item> --}}
-                                    <flux:menu.item variant="danger" icon="trash" wire:click="$dispatch('confirm-delete', {id: {{ $category->id }}})">Delete</flux:menu.item>
+                                    <flux:menu.item variant="danger" icon="trash" wire:click="$dispatch('confirm-delete', { id: {{ $category->id }} })">Delete</flux:menu.item>
                                 </flux:menu>
                             </flux:dropdown>
                         </flux:table.cell>

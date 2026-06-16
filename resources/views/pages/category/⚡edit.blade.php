@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Flux\Flux;
 use App\Models\Category;
 use App\Livewire\Forms\CategoryForm;
 
@@ -75,9 +76,9 @@ new class extends Component
                 />
 
                 <flux:textarea
-                    label="Description"
-                    placeholder="Enter category description"
-                    wire:model="form.description"
+                    label="Harga"
+                    placeholder="Enter category price"
+                    wire:model="form.harga"
                     wire:dirty.class.text-red-500
                 />
             </div>

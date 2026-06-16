@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Component;
+use Flux\Flux;
 use App\Livewire\Forms\CategoryForm;
 
 new class extends Component
@@ -29,11 +30,10 @@ new class extends Component
 
 <div>
     <flux:modal name="create-category" class="md:w-150" x-on:close="$wire.resetForm()">
-    <form class="space-y-8" wire:submit.prevent="save">
             {{-- header --}}
             <div class="space-y-2">
                 <flux:heading size="lg" class="text-zinc-900 dark:text-white">
-                    Create Category
+                    Category Menu
                 </flux:heading>
                 <flux:text class="text-zinc-500 dark:text-zinc-400">
                     Add a new category to your account
@@ -49,9 +49,9 @@ new class extends Component
                 />
 
                 <flux:textarea
-                    label="Description"
-                    placeholder="Enter category description"
-                    wire:model="form.description"
+                    label="Harga"
+                    placeholder="Enter category price"
+                    wire:model="form.harga"
                 />
             </div>
     
