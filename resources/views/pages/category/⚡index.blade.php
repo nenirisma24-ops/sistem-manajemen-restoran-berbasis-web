@@ -27,7 +27,7 @@ new class extends Component
     <flux:separator variant="subtle" />
 
     <flux:modal.trigger name="create-category">
-        <flux:button variant="primary" icon="plus" color="primary">Add Category</flux:button>
+        <flux:button variant="primary" icon="plus" color="primary">Category Menu</flux:button>
     </flux:modal.trigger>
 
     <livewire:category.create />
@@ -39,8 +39,8 @@ new class extends Component
        <flux:table :paginate="$this->categories">
             <flux:table.columns>
                 <flux:table.column>No</flux:table.column>
-                <flux:table.column>Name</flux:table.column>
-                <flux:table.column>Description</flux:table.column>
+                <flux:table.column>Name Menu</flux:table.column>
+                <flux:table.column>Harga</flux:table.column>
                 <flux:table.column>Created At</flux:table.column>
                 <flux:table.column>Actions</flux:table.column>
             </flux:table.columns>
