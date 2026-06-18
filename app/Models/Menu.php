@@ -7,10 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Menu extends Model
 {
     protected $fillable = [
-        'kategori_id',
-        'nama_menu',
-        'deskripsi',
-        'harga',
-        'stok',
+        'category_id',
+        'name',
+        'description',
+        'price',
+        'stock',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 }
