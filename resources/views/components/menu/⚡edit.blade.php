@@ -2,27 +2,26 @@
 
 use Livewire\Component;
 use Livewire\Attributes\On;
-use Flux\Flux;
-use App\Models\Category;
-use App\Livewire\Forms\CategoryForm;
+use App\Models\Menu;
+use App\Livewire\Forms\MenuForm;
 
 new class extends Component
 {
-    public CategoryForm $form;
+    public MenuForm $form;
 
-   #[On('edit-category')]
-    public function editCategory($id){
+   #[On('edit-Menu')]
+    public function editMenu($id){
 
-        $category = Category::find($id);
-        $this->form->setCategory($category);
-        Flux::modal('edit-category')->show();
+        $menu = Menu::find($id);
+        $this->form->setMenu($menu);
+        Flux::modal('edit-menu')->show();
     }
 
-    public function updateCategory() {
+    public function updateMenu() {
         $this->form->update();
-        Flux::modal('edit-category')->close();
-        session()->flash('success', 'Category updated successfully');
-        $this->redirectRoute('category.index', navigate: true);
+        Flux::modal('edit-menu')->close();
+        session()->flash('success', 'Menu updated successfully');
+        $this->redirectRoute('menu.index', navigate: true);
     }
 
     public function resetForm()
@@ -34,35 +33,35 @@ new class extends Component
     #[On('confirm-delete')]
     public function confirmDelete($id)
     {
-        $category = Category::find($id);
-        $this->form->setCategory($category);
-        Flux::modal('delete-category')->show();
+        $menu = Menu::find($id);
+        $this->form->setMenu($menu);
+        Flux::modal('delete-menu')->show();
     }
 
-     public function deleteCategory() {
-        $this->form->category->delete();
-        Flux::modal('delete-category')->close();
-        session()->flash('success', 'Category deleted successfully');
-        $this->redirectRoute('category.index', navigate: true);
+     public function deleteMenu() {
+        $this->form->menu->delete();
+        Flux::modal('delete-menu')->close();
+        session()->flash('success', 'Menu deleted successfully');
+        $this->redirectRoute('menu.index', navigate: true);
     }
 };
 ?>
 
 <div>
-    {{--edit category --}}
+    {{--edit menu --}}
     <flux:modal 
-        name="edit-category" 
+        name="edit-menu" 
         class="md:w-150" 
         x-on:close="$wire.resetForm()" 
     >
-        <form class="space-y-8" wire:submit.prevent="updateCategory">
+        <form class="space-y-8" wire:submit.prevent="updateMenu">
             {{-- header --}}
             <div class="space-y-2">
                 <flux:heading size="lg" class="text-zinc-900 dark:text-white">
-                    Edit Category
+                    Edit Menu
                 </flux:heading>
                 <flux:text class="text-zinc-500 dark:text-zinc-400">
-                    Edit your category details below
+                    Edit your menu details below
                 </flux:text>
             </div>
 
@@ -70,19 +69,32 @@ new class extends Component
             <div class="space-y-6">
                 <flux:input
                     label="Name"
-                    placeholder="Enter category name"
-                    wire:model="form.name"
+                    placeholder="Enter menu name"
+                    wire:model="form.name_menu"
                     wire:dirty.class.text-red-500
                 />
 
                 <flux:input
+                    label="Description"
+                    placeholder="Enter menu description"
+                    wire:model="form.deskripsi_menu"
+                    wire:dirty.class.text-red-500
+                />
+                <flux:input
                     label="Harga"
-                    placeholder="Enter category price"
+                    placeholder="Enter menu price"
                     type="number"
                     step="0.01"
                     wire:model="form.harga"
                     wire:dirty.class.text-red-500
                 />
+                <flux:input
+                    label="Stok"
+                    placeholder="Enter menu stock"
+                    type="number"
+                    wire:model="form.stok"
+                    wire:dirty.class.text-red-500
+                />  
             </div>
 
             <div 
@@ -107,15 +119,15 @@ new class extends Component
     {{-- delete modal --}}
 
     <flux:modal 
-        name="delete-category" 
+        name="delete-menu" 
         class="md:w-150" 
         x-on:close="$wire.resetForm()" 
     >
-        <form class="space-y-8" wire:submit.prevent="deleteCategory">
+        <form class="space-y-8" wire:submit.prevent="deleteMenu">
             {{-- header --}}
             <div class="space-y-2">
                 <flux:heading size="lg" class="text-zinc-900 dark:text-white">
-                    Delete Category
+                    Delete Menu
                 </flux:heading>
                 <flux:text class="text-zinc-500 dark:text-zinc-400">
                     this action cannot be undone

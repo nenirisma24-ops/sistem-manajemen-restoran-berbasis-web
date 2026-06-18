@@ -15,9 +15,11 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
-                    
-                    <flux:sidebar.item icon="folder" :href="route('category.index')" :current="request()->routeIs('category.index')" wire:navigate>
+                <flux:sidebar.item icon="home" :href="route('category.index')" :current="request()->routeIs('category.index')" wire:navigate>
                         {{ __('Categories') }}
+                    </flux:sidebar.item>
+                     <flux:sidebar.item icon="home" :href="route('menu.index')" :current="request()->routeIs('menu.index')" wire:navigate>
+                        {{ __('Menus') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
