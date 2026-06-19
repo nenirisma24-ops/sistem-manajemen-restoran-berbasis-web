@@ -48,14 +48,6 @@ new class extends Component
                     placeholder="Enter category name"
                     wire:model="form.name"
                 />
-
-                <flux:input
-                    label="Harga"
-                    placeholder="Enter category price"
-                    type="number"
-                    step="0.01"
-                    wire:model="form.harga"
-                />
             </div>
     
             {{-- footer --}}

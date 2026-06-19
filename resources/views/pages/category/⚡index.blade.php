@@ -39,8 +39,7 @@ new class extends Component
        <flux:table :paginate="$this->categories">
             <flux:table.columns>
                 <flux:table.column>No</flux:table.column>
-                <flux:table.column>Name Menu</flux:table.column>
-                <flux:table.column>Harga</flux:table.column>
+                <flux:table.column>Name</flux:table.column>
                 <flux:table.column>Created At</flux:table.column>
                 <flux:table.column>Actions</flux:table.column>
             </flux:table.columns>
@@ -55,10 +54,6 @@ new class extends Component
                         
                         <flux:table.cell class="flex items-center gap-3">
                             {{ $category->name }}
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
-                            {{ $category->harga ? 'Rp ' . number_format($category->harga, 0, ',', '.') : '-' }}
                         </flux:table.cell>
 
                         <flux:table.cell class="whitespace-nowrap">{{ $category->created_at->diffForHumans() }}</flux:table.cell>

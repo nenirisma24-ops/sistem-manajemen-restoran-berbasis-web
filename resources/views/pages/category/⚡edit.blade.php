@@ -74,15 +74,6 @@ new class extends Component
                     wire:model="form.name"
                     wire:dirty.class.text-red-500
                 />
-
-                <flux:input
-                    label="Harga"
-                    placeholder="Enter category price"
-                    type="number"
-                    step="0.01"
-                    wire:model="form.harga"
-                    wire:dirty.class.text-red-500
-                />
             </div>
 
             <div 

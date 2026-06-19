@@ -10,7 +10,6 @@ use Illuminate\Validation\Rule;
 class CategoryForm extends Form
 {
     public string $name = '';
-    public $harga = null;
     public ?Category $category = null;
 
     public function rules(): array
@@ -23,18 +22,13 @@ class CategoryForm extends Form
                 'max:255',
                 Rule::unique('categories', 'name')->ignore($this->category?->id),
             ],
-            'harga' => [
-                'nullable',
-                'numeric',
-                'min:0',
-            ],
         ];
     }
 
     public function store()
     {
         $this->validate();
-        Category::create($this->only(['name', 'harga']));
+        Category::create($this->only(['name']));
         $this->reset();
     }
 
@@ -42,13 +36,12 @@ class CategoryForm extends Form
     {
         $this->category = $category;
         $this->name = $category->name;
-        $this->harga = $category->harga ?? '';
     }
 
     // update
     public function update()
     {
         $this->validate();
-        $this->category->update($this->only(['name', 'harga']));
+        $this->category->update($this->only(['name']));
     }
 }
