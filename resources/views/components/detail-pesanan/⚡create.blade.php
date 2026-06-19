@@ -59,10 +59,18 @@ new class extends Component
             </div>
 
             <div class="space-y-6">
+
+                <flux:input
+                    label="Pesanan ID"
+                    type="number"
+                    placeholder="Enter pesanan ID"
+                    wire:model="form.pesanan_id"
+                />  
+
                 <flux:select
                     label="Menu"
                     placeholder="Select menu"
-                    wire:model="form.name"
+                    wire:model="form.menu_id"
                 >
                     <option value="">Select menu</option>
                     @foreach ($this->menus as $menu)
@@ -76,6 +84,14 @@ new class extends Component
                     min="1"
                     placeholder="Enter jumlah"
                     wire:model="form.jumlah"
+                />
+
+                <flux:input
+                    label="Subtotal"
+                    type="number"
+                    min="1"
+                    placeholder="Enter subtotal"
+                    wire:model="form.subtotal"
                 />
             </div>
 
