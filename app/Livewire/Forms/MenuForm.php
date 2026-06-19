@@ -48,8 +48,6 @@ class MenuForm extends Form
 
     public function store()
     {
-        dd($this->validate());
-
         $this->validate();
         Menu::create([
             'category_id' => $this->category_id,

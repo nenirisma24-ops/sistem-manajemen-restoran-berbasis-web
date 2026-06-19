@@ -34,7 +34,11 @@ new class extends Component {
     public function resetForm()
     {
         $this->resetValidation();
-        $this->form->reset();
+
+        // Periksa apakah properti $form sudah diinisialisasi
+        if (isset($this->form)) {
+            $this->form->reset();
+        }
     }
 };
 
