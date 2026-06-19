@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('detail_pesanans', function (Blueprint $table) {
             $table->id();
             $table->integer('pesanan_id')->nullable();
-            $table->integer('menu_id')->nullable();
+            $table->integer('name')->nullable();
             $table->integer('jumlah')->nullable();
             $table->integer('subtotal')->nullable();
             $table->timestamps();

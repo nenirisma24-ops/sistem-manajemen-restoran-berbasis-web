@@ -7,32 +7,37 @@ use Illuminate\Validation\Rule;
 
 class MenuForm extends Form
 {
-    public string $nama_menu = '';
-    public string $deskripsi_menu = '';
-    public $harga = null;
-    public $stok = null;
+    public string $name = '';
+    public string $description = '';
+    public $price = null;
+    public $stock = null;
     public ?Menu $menu = null;
 
     public function rules(): array
     {
         return [
-            'nama_menu' => [
+            'category_id' => [
+                'required',
+                'exists:categories,id',
+            ],
+
+            'name' => [
                 'required',
                 'string',
                 'min:3',
                 'max:255',
-                Rule::unique('menus', 'nama_menu')->ignore($this->menu?->id),
+                Rule::unique('menus', 'name')->ignore($this->menu?->id),
             ],
-            'deskripsi_menu' => [
+            'description' => [
                 'nullable',
                 'string',
             ],
-            'harga' => [
+            'price' => [
                 'nullable',
                 'numeric',
                 'min:0',
             ],
-            'stok' => [
+            'stock' => [
                 'nullable',
                 'numeric',
                 'min:0',
@@ -44,10 +49,11 @@ class MenuForm extends Form
     {
         $this->validate();
         Menu::create([
-    'nama_menu' => $this->nama_menu,
-    'deskripsi_menu' => $this->deskripsi_menu,
-    'harga' => $this->harga,
-    'stok' => $this->stok,
+    'category_id' => $this->category_id,
+    'name' => $this->name,
+    'description' => $this->description,
+    'price' => $this->price,
+    'stock' => $this->stock,
 ]);
         $this->reset();
     }
@@ -64,16 +70,17 @@ class MenuForm extends Form
     public function setMenu(Menu $menu): void
     {
         $this->menu = $menu;
-        $this->nama_menu = $menu->nama_menu;
-        $this->deskripsi_menu = $menu->deskripsi_menu;
-        $this->harga = $menu->harga;
-        $this->stok = $menu->stok;
+        $this->category_id = $menu->category_id;
+        $this->name = $menu->name;
+        $this->description = $menu->description;
+        $this->price = $menu->price;
+        $this->stock = $menu->stock;
     }
            //update menu
     public function update()
     {
         $this->validate();
-        $this->menu->update($this->only(['nama_menu', 'deskripsi_menu', 'harga', 'stok']));
+        $this->menu->update($this->only(['category_id', 'name', 'description', 'price', 'stock']));
     }
 
 }   

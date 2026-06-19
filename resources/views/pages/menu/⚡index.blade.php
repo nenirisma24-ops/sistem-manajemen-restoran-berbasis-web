@@ -8,7 +8,7 @@ use App\Models\Menu;
 new class extends Component
 {
     use WithPagination;
-    
+
     #[Computed]
     public function menus()
     {
@@ -17,84 +17,148 @@ new class extends Component
 
     public function edit($id)
     {
-        $this->dispatch('edit-Menu',  id:$id);
+        $this->dispatch('edit-menu', id: $id);
     }
 };
+
 ?>
 
 <div class="max-w-7xl mx-auto space-y-4">
-    <flux:heading size="xl" class="text-zinc-800 dark:text-white">Menu</flux:heading>
-    <flux:subheading size="lg" class="text-zinc-600 dark:text-zinc-400">Manage your menus</flux:subheading>
+
+    <flux:heading size="xl">
+        Menu
+    </flux:heading>
+
+    <flux:subheading size="lg">
+        Manage your menus
+    </flux:subheading>
+
     <flux:separator variant="subtle" />
 
+    {{-- Button Create --}}
     <flux:modal.trigger name="create-menu">
-        <flux:button variant="primary" icon="plus" color="primary">Create Menu</flux:button>
+        <flux:button
+            variant="primary"
+            icon="plus"
+        >
+            Create Menu
+        </flux:button>
     </flux:modal.trigger>
 
+    {{-- Livewire Components --}}
     <livewire:menu.create />
     <livewire:menu.edit />
+
     <x-flash-message />
 
-     {{-- table --}}
+    {{-- Table --}}
     <div class="overflow-x-auto">
-       <flux:table :paginate="$this->menus">
+
+        <flux:table :paginate="$this->menus">
+
             <flux:table.columns>
-                <flux:table.column>kategori_id</flux:table.column>
-                <flux:table.column>nama_menu</flux:table.column>
-                <flux:table.column>deskripsi</flux:table.column>
-                <flux:table.column>Harga</flux:table.column>
-                <flux:table.column>Stok</flux:table.column>
+                <flux:table.column>No</flux:table.column>
+                <flux:table.column>Name</flux:table.column>
+                <flux:table.column>Description</flux:table.column>
+                <flux:table.column>Price</flux:table.column>
+                <flux:table.column>Stock</flux:table.column>
                 <flux:table.column>Created At</flux:table.column>
                 <flux:table.column>Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
-                @foreach ($this->menus as $menu)
+
+                @forelse ($this->menus as $menu)
+
                     <flux:table.row :key="$menu->id">
 
+                        {{-- No --}}
                         <flux:table.cell>
-                            {{$loop->iteration + $this->menus->firstItem()-1}}
-                        </flux:table.cell> 
-                        
-                        <flux:table.cell class="flex items-center gap-3">
-                            {{ $menu->nama_menu }}
+                            {{ $loop->iteration + $this->menus->firstItem() - 1 }}
                         </flux:table.cell>
 
-                        <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
-                            {{ $menu->deskripsi_menu }}
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
-                            {{ $menu->harga }}
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-zinc-500 dark:text-zinc-400">
-                            {{ $menu->stok }}
-                        </flux:table.cell>
-                       <flux:table.cell class="whitespace-nowrap">{{ $menu->created_at?->diffForHumans() ?? '-' }}
-                       </flux:table.cell>
-
+                        {{-- Name --}}
                         <flux:table.cell>
+                            {{ $menu->name }}
+                        </flux:table.cell>
 
+                        {{-- Description --}}
+                        <flux:table.cell>
+                            {{ $menu->description }}
+                        </flux:table.cell>
+
+                        {{-- Price --}}
+                        <flux:table.cell>
+                            Rp {{ number_format($menu->price, 0, ',', '.') }}
+                        </flux:table.cell>
+
+                        {{-- Stock --}}
+                        <flux:table.cell>
+                            {{ $menu->stock }}
+                        </flux:table.cell>
+
+                        {{-- Created --}}
+                        <flux:table.cell>
+                            {{ $menu->created_at?->diffForHumans() }}
+                        </flux:table.cell>
+
+                        {{-- Actions --}}
+                        <flux:table.cell>
 
                             <flux:dropdown>
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom"></flux:button>
+
+                                <flux:button
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="ellipsis-horizontal"
+                                />
 
                                 <flux:menu>
-                                    <flux:menu.item icon="pencil" wire:click="edit({{ $menu->id }})">Edit</flux:menu.item>
+
+                                    <flux:menu.item
+                                        icon="pencil"
+                                        wire:click="edit({{ $menu->id }})"
+                                    >
+                                        Edit
+                                    </flux:menu.item>
 
                                     <flux:menu.separator />
 
-                                    {{-- <flux:menu.item variant="danger" icon="trash" wire:click="$dispatch('confirm-delete', id: $menu->id)">Delete</flux:menu.item> --}}
-                                    <flux:menu.item variant="danger" icon="trash" wire:click="$dispatch('confirm-delete', { id: {{ $menu->id }} })">Delete</flux:menu.item>
+                                    <flux:menu.item
+                                        variant="danger"
+                                        icon="trash"
+                                        wire:click="$dispatch('confirm-delete', { id: {{ $menu->id }} })"
+                                    >
+                                        Delete
+                                    </flux:menu.item>
+
                                 </flux:menu>
+
                             </flux:dropdown>
+
                         </flux:table.cell>
+
                     </flux:table.row>
-                @endforeach
+
+                @empty
+
+                    <flux:table.row>
+
+                        <flux:table.cell colspan="7">
+                            <div class="text-center py-8 text-zinc-500">
+                                No menu found.
+                            </div>
+
+                        </flux:table.cell>
+
+                    </flux:table.row>
+
+                @endforelse
+
             </flux:table.rows>
+
         </flux:table>
 
-
     </div>
+
 </div>
