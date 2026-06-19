@@ -9,7 +9,7 @@ use App\Models\Menu;
 class Detail_PesananForm extends Form
 {
     public $pesanan_id;
-    public $menu_id;
+    public $name;
     public $jumlah = 1;
     public $subtotal = 0;
 
@@ -19,7 +19,7 @@ class Detail_PesananForm extends Form
     {
         return [
             'pesanan_id' => ['required'],
-            'menu_id' => ['required'],
+            'name' => ['required'],
             'jumlah' => ['required', 'integer', 'min:1'],
         ];
     }
@@ -37,11 +37,11 @@ class Detail_PesananForm extends Form
     {
         $this->validate();
 
-        $menu = Menu::find($this->menu_id);
+        $menu = Menu::find($this->name);
 
         Detail_Pesanan::create([
             'pesanan_id' => $this->pesanan_id,
-            'menu_id' => $this->menu_id,
+            'menu_id' => $this->name,
             'jumlah' => $this->jumlah,
             'subtotal' => $menu->harga * $this->jumlah,
         ]);
@@ -54,7 +54,7 @@ class Detail_PesananForm extends Form
         $this->detailPesanan = $detailPesanan;
 
         $this->pesanan_id = $detailPesanan->pesanan_id;
-        $this->menu_id = $detailPesanan->menu_id;
+        $this->name = $detailPesanan->name;
         $this->jumlah = $detailPesanan->jumlah;
         $this->subtotal = $detailPesanan->subtotal;
     }
@@ -63,13 +63,13 @@ class Detail_PesananForm extends Form
     {
         $this->validate();
 
-        $menu = Menu::find($this->menu_id);
+        $menu = Menu::find($this->name);
 
         $this->detailPesanan->update([
             'pesanan_id' => $this->pesanan_id,
-            'menu_id' => $this->menu_id,
+            'name' => $this->name,
             'jumlah' => $this->jumlah,
-            'subtotal' => $menu->harga * $this->jumlah,
+            'subtotal' => $menu->price * $this->jumlah,
         ]);
 
         $this->reset();

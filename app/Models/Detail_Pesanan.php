@@ -11,13 +11,13 @@ class Detail_Pesanan extends Model
 
     protected $fillable = [
         'pesanan_id',
-        'menu_id',
+        'name',
         'jumlah',
         'subtotal',
     ];
 
     public function menu()
     {
-        return $this->belongsTo(Menu::class, 'menu_id');
+        return $this->belongsTo(Menu::class, 'name');
     }
 }
