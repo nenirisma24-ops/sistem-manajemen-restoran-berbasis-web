@@ -26,7 +26,7 @@ new class extends Component {
         );
 
         return $this->redirectRoute(
-            'menus.index',
+            'menu.index',
             navigate: true
         );
     }
