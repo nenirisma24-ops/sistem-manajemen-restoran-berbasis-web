@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 
 class MenuForm extends Form
 {
+    public string $category_id = '';
     public string $name = '';
     public string $description = '';
     public $price = null;
@@ -49,12 +50,12 @@ class MenuForm extends Form
     {
         $this->validate();
         Menu::create([
-    'category_id' => $this->category_id,
-    'name' => $this->name,
-    'description' => $this->description,
-    'price' => $this->price,
-    'stock' => $this->stock,
-]);
+            'category_id' => $this->category_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'price' => $this->price,
+            'stock' => $this->stock,
+        ]);
         $this->reset();
     }
 

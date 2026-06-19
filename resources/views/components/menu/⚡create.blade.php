@@ -2,10 +2,17 @@
 
 use Livewire\Component;
 use App\Livewire\Forms\MenuForm;
+use App\Models\Category;
+use Livewire\Attributes\Computed;
 
-new class extends Component
-{
+new class extends Component {
     public MenuForm $form;
+
+    #[Computed]
+    public function categories()
+    {
+        return Category::all();
+    }
 
     public function save()
     {
@@ -34,16 +41,9 @@ new class extends Component
 ?>
 
 <div>
-    <flux:modal
-        name="create-menu"
-        class="md:w-150"
-        x-on:close="$wire.resetForm()"
-    >
+    <flux:modal name="create-menu" class="md:w-150" x-on:close="$wire.resetForm()">
 
-        <form
-            class="space-y-8"
-            wire:submit.prevent="save"
-        >
+        <form class="space-y-8" wire:submit.prevent="save">
 
             <div class="space-y-2">
                 <flux:heading size="lg">
@@ -57,28 +57,19 @@ new class extends Component
 
             <div class="space-y-6">
 
-                <flux:input
-                    label="Name"
-                    wire:model="form.name"
-                />
+                <flux:input label="Name" wire:model="form.name" />
 
-                <flux:textarea
-                    label="Description"
-                    wire:model="form.description"
-                />
+                <flux:select label="Category" wire:model="form.category_id" placeholder="Choose category...">
+                    @foreach ($this->categories as $category)
+                        <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
 
-                <flux:input
-                    label="Price"
-                    type="number"
-                    step="0.01"
-                    wire:model="form.price"
-                />
+                <flux:textarea label="Description" wire:model="form.description" />
 
-                <flux:input
-                    label="Stock"
-                    type="number"
-                    wire:model="form.stock"
-                />
+                <flux:input label="Price" type="number" step="0.01" wire:model="form.price" />
+
+                <flux:input label="Stock" type="number" wire:model="form.stock" />
 
             </div>
 
@@ -90,10 +81,7 @@ new class extends Component
                     </flux:button>
                 </flux:modal.close>
 
-                <flux:button
-                    type="submit"
-                    variant="primary"
-                >
+                <flux:button type="submit" variant="primary">
                     Create
                 </flux:button>
 
