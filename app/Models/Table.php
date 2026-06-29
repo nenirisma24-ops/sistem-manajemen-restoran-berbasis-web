@@ -8,8 +8,12 @@ class Table extends Model
 {
     protected $fillable = [
         'id',
-        'nomer_table',
+        'number_table',
         'status',
     ];
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tables', function (Blueprint $table) {
             $table->id();
-            $table->string('nomer_table');
+            $table->string('number_table');
             $table->string('status')->default('tersedia');
             $table->timestamps();
         });

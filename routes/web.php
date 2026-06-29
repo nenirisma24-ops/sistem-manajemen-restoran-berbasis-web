@@ -9,6 +9,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/categories', 'pages::category.index')->name('category.index');
     Route::livewire('/menus', 'pages::menu.index')->name('menu.index');
     Route::livewire('/detail-pesanan', 'pages::detail_pesanan.index')->name('detail-pesanan.index');
+    Route::livewire('/tables', 'pages::table.index')->name('table.index');
 });
 
 require __DIR__.'/settings.php';
