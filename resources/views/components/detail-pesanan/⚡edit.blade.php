@@ -3,18 +3,18 @@
 use Livewire\Component;
 use Livewire\Attributes\On;
 use App\Models\Detail_Pesanan;
-use App\Livewire\Forms\Detai_lPesananForm;
+use App\Livewire\Forms\Detai_PesananForm;
 
 new class extends Component
 {
-    public Detai_lPesananForm $form;
+    public Detail_PesananForm $form;
 
     #[On('edit-Detail_Pesanan')]
     public function editDetail_Pesanan($id)
     {
         $detailPesanan = Detail_Pesanan::findOrFail($id);       
 
-        $this->form->setDetail_Pesanan($detailPesanan);
+        $this->form->setDetail_Pesanan($detail_Pesanan);
 
         Flux::modal('edit-detail-pesanan')->show();
     }

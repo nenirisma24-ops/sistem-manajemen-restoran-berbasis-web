@@ -4,7 +4,6 @@ use Livewire\Component;
 use App\Livewire\Forms\Detail_PesananForm;
 use App\Models\Menu;
 use Livewire\Attributes\Computed;
-use Flux\Flux;
 
 new class extends Component
 {
@@ -78,6 +77,8 @@ new class extends Component
                     @endforeach
                 </flux:select>
 
+
+
                 <flux:input
                     label="Jumlah"
                     type="number"
@@ -99,7 +100,9 @@ new class extends Component
                 <flux:modal.close>
                     <flux:button variant="outline" color="neutral">Cancel</flux:button>
                 </flux:modal.close>
-                <flux:button variant="primary" color="primary" type="submit">Create</flux:button>
+                     <flux:button type="submit" variant="primary">
+                    Create
+                </flux:button>
             </div>
         </form>
     </flux:modal>
