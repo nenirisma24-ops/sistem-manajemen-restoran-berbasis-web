@@ -15,19 +15,23 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="home" :href="route('category.index')" :current="request()->routeIs('category.index')" wire:navigate>
+                    <flux:sidebar.item icon="tag" :href="route('category.index')" :current="request()->routeIs('category.index')" wire:navigate>
                         {{ __('Categories') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="home" :href="route('menu.index')" :current="request()->routeIs('menu.index')" wire:navigate>
+                    <flux:sidebar.item icon="book-open" :href="route('menu.index')" :current="request()->routeIs('menu.index')" wire:navigate>
                         {{ __('Menus') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="home" :href="route('detail-pesanan.index')" :current="request()->routeIs('detail-pesanan.index')" wire:navigate>
+                    <flux:sidebar.item icon="document-text" :href="route('detail-pesanan.index')" :current="request()->routeIs('detail-pesanan.index')" wire:navigate>
                         {{ __('Detail Pesanan') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="home" :href="route('table.index')" :current="request()->routeIs('table.index')" wire:navigate>
+                    <flux:sidebar.item icon="table-cells" :href="route('table.index')" :current="request()->routeIs('table.index')" wire:navigate>
                         {{ __('Tables') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="receipt-percent" :href="route('pesanan.index')" :current="request()->routeIs('pesanan.index')" wire:navigate>
+                        {{ __('Pesanans') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group> </flux:sidebar.nav>
+                
 
             <flux:spacer />
 
