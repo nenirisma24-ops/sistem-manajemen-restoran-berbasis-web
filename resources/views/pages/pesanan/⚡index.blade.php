@@ -1,8 +1,8 @@
 <?php
 
 use Livewire\Component;
-use Livewire\Attributes\Computed;
 use Livewire\WithPagination;
+use Livewire\Attributes\Computed;
 use App\Models\Pesanan;
 
 new class extends Component
@@ -16,38 +16,36 @@ new class extends Component
             ->latest()
             ->paginate(10);
     }
-
-    public function edit($id)
-    {
-        $this->dispatch('edit-pesanan', id: $id);
-    }
 };
 
 ?>
 
-<div class="max-w-7xl mx-auto space-y-4">
+<div class="max-w-7xl mx-auto space-y-6">
 
-    <flux:heading size="xl">
-        Pesanan
-    </flux:heading>
+    <div>
+        <flux:heading size="xl">Pesanan</flux:heading>
 
-    <flux:subheading size="lg">
-        Manage your orders
-    </flux:subheading>
+        <flux:subheading>
+            Manage your restaurant orders
+        </flux:subheading>
+    </div>
 
-    <flux:separator variant="subtle" />
+    <flux:separator />
 
-    {{-- Button Create --}}
-    <flux:modal.trigger name="create-pesanan">
-        <flux:button
-            variant="primary"
-            icon="plus"
-        >
-            Create Pesanan
-        </flux:button>
-    </flux:modal.trigger>
+    <div class="flex justify-end">
 
-    {{-- Modal --}}
+        <flux:modal.trigger name="create-pesanan">
+            <flux:button
+                variant="primary"
+                icon="plus"
+            >
+                Create Pesanan
+            </flux:button>
+        </flux:modal.trigger>
+
+    </div>
+
+    {{-- Modal Components --}}
     <livewire:pesanan.create />
     <livewire:pesanan.edit />
 
@@ -61,16 +59,16 @@ new class extends Component
                 <flux:table.column>No</flux:table.column>
                 <flux:table.column>Customer</flux:table.column>
                 <flux:table.column>Table</flux:table.column>
-                <flux:table.column>Order_Date</flux:table.column>
+                <flux:table.column>Order Date</flux:table.column>
                 <flux:table.column>Status</flux:table.column>
-                <flux:table.column>Total_price</flux:table.column>
+                <flux:table.column>Total Price</flux:table.column>
                 <flux:table.column>Created At</flux:table.column>
                 <flux:table.column>Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
 
-                @forelse($this->pesanans as $pesanan)
+                @forelse ($this->pesanans as $pesanan)
 
                     <flux:table.row :key="$pesanan->id">
 
@@ -87,7 +85,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            {{ $pesanan->order_date }}
+                            {{ \Carbon\Carbon::parse($pesanan->order_date)->format('d-m-Y') }}
                         </flux:table.cell>
 
                         <flux:table.cell>
@@ -95,45 +93,36 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            Rp {{ number_format($pesanan->total_price,0,',','.') }}
+                            Rp {{ number_format($pesanan->total_price, 0, ',', '.') }}
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            {{ $pesanan->created_at?->diffForHumans() }}
+                            {{ $pesanan->created_at->diffForHumans() }}
                         </flux:table.cell>
 
                         <flux:table.cell>
 
-                            <flux:dropdown>
+                            <div class="flex gap-2">
 
                                 <flux:button
-                                    variant="ghost"
                                     size="sm"
-                                    icon="ellipsis-horizontal"
-                                />
+                                    icon="pencil"
+                                    variant="filled"
+                                    wire:click="$dispatch('edit-pesanan', { id: {{ $pesanan->id }} })"
+                                >
+                                    Edit
+                                </flux:button>
 
-                                <flux:menu>
+                                <flux:button
+                                    size="sm"
+                                    icon="trash"
+                                    variant="danger"
+                                    wire:click="$dispatch('delete-pesanan', { id: {{ $pesanan->id }} })"
+                                >
+                                    Delete
+                                </flux:button>
 
-                                    <flux:menu.item
-                                        icon="pencil"
-                                        wire:click="edit({{ $pesanan->id }})"
-                                    >
-                                        Edit
-                                    </flux:menu.item>
-
-                                    <flux:menu.separator />
-
-                                    <flux:menu.item
-                                        variant="danger"
-                                        icon="trash"
-                                        wire:click="$dispatch('delete-pesanan', { id: {{ $pesanan->id }} })"
-                                    >
-                                        Delete
-                                    </flux:menu.item>
-
-                                </flux:menu>
-
-                            </flux:dropdown>
+                            </div>
 
                         </flux:table.cell>
 
@@ -143,12 +132,8 @@ new class extends Component
 
                     <flux:table.row>
 
-                        <flux:table.cell colspan="8">
-
-                            <div class="text-center py-8 text-zinc-500">
-                                No order found.
-                            </div>
-
+                        <flux:table.cell colspan="8" class="text-center py-8">
+                            No order data found.
                         </flux:table.cell>
 
                     </flux:table.row>

@@ -12,11 +12,6 @@ new class extends Component
 {
     public PesananForm $form;
 
-    public function mount()
-    {
-        $this->form = new PesananForm($this, 'form');
-    }
-
     #[On('edit-pesanan')]
     public function editPesanan($id)
     {
@@ -35,13 +30,16 @@ new class extends Component
 
         session()->flash('success', 'Pesanan updated successfully');
 
-        return $this->redirectRoute('pesanan.index', navigate: true);
+        return $this->redirectRoute(
+            'pesanan.index',
+            navigate: true
+        );
     }
 
     public function resetForm()
     {
         $this->resetValidation();
-        
+
         if (isset($this->form)) {
             $this->form->reset();
             $this->form->status = 'pending';
@@ -67,17 +65,20 @@ new class extends Component
 
         session()->flash('success', 'Pesanan deleted successfully');
 
-        return $this->redirectRoute('pesanan.index', navigate: true);
+        return $this->redirectRoute(
+            'pesanan.index',
+            navigate: true
+        );
     }
 
     public function users()
     {
-        return User::all();
+        return User::orderBy('name')->get();
     }
 
     public function tables()
     {
-        return Table::all();
+        return Table::orderBy('number_table')->get();
     }
 };
 
@@ -95,7 +96,6 @@ new class extends Component
         <form wire:submit="updatePesanan" class="space-y-6">
 
             <div>
-
                 <flux:heading size="lg">
                     Edit Pesanan
                 </flux:heading>
@@ -103,7 +103,6 @@ new class extends Component
                 <flux:text>
                     Update order information.
                 </flux:text>
-
             </div>
 
             <flux:select

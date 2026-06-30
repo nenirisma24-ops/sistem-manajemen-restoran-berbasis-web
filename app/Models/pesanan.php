@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Pesanan extends Model
 {
@@ -11,15 +12,26 @@ class Pesanan extends Model
         'table_id',
         'order_date',
         'status',
-        'total_price'
+        'total_price',
     ];
 
-    public function user()
+    protected $casts = [
+        'order_date' => 'date',
+        'total_price' => 'integer',
+    ];
+
+    /**
+     * Relasi ke User (Customer)
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-     public function table(): BelongsTo
+    /**
+     * Relasi ke Table (Meja)
+     */
+    public function table(): BelongsTo
     {
         return $this->belongsTo(Table::class);
     }
