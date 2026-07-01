@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Menu;
 
 class Detail_Pesanan extends Model
@@ -11,13 +12,13 @@ class Detail_Pesanan extends Model
 
     protected $fillable = [
         'pesanan_id',
-        'name',
+        'menu_id',
         'jumlah',
         'subtotal',
     ];
 
-    public function menu()
+    public function menu() : BelongsTo
     {
-        return $this->belongsTo(Menu::class, 'name');
+        return $this->BelongsTo(Menu::class, 'menu_id');
     }
 }

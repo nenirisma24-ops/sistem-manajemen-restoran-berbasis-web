@@ -20,7 +20,7 @@ class Pesanan extends Model
         return $this->belongsTo(User::class);
     }
 
-     public function table(): BelongsTo
+    public function table(): BelongsTo
     {
         return $this->belongsTo(Table::class);
     }

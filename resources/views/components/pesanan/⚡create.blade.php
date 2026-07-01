@@ -8,12 +8,8 @@ use App\Livewire\Forms\PesananForm;
 
 new class extends Component
 {
+    // Instance Form
     public PesananForm $form;
-
-    public function mount()
-    {
-        $this->form = new PesananForm($this, 'form');
-    }
 
     public function save()
     {
@@ -45,12 +41,12 @@ new class extends Component
 
     public function users()
     {
-        return User::all();
+        return User::orderBy('name')->get();
     }
 
     public function tables()
     {
-        return Table::where('status', 'tersedia')->get();
+        return Table::where('status', 'tersedia')->orderBy('number_table')->get();
     }
 };
 
@@ -63,7 +59,7 @@ new class extends Component
         x-on:close="$wire.resetForm()"
     >
 
-        <form class="space-y-6" wire:submit.prevent="save">
+        <form class="space-y-8" wire:submit.prevent="save">
 
             <div class="space-y-2">
                 <flux:heading size="lg">
@@ -77,7 +73,6 @@ new class extends Component
 
             <div class="space-y-6">
 
-                {{-- Customer --}}
                 <flux:select
                     label="Customer"
                     wire:model="form.user_id"
@@ -89,10 +84,8 @@ new class extends Component
                             {{ $user->name }}
                         </option>
                     @endforeach
-
                 </flux:select>
 
-                {{-- Table --}}
                 <flux:select
                     label="Table"
                     wire:model="form.table_id"
@@ -104,17 +97,14 @@ new class extends Component
                             {{ $table->number_table }}
                         </option>
                     @endforeach
-
                 </flux:select>
 
-                {{-- Order Date --}}
                 <flux:input
                     type="date"
                     label="Order Date"
                     wire:model="form.order_date"
                 />
 
-                {{-- Status --}}
                 <flux:select
                     label="Status"
                     wire:model="form.status"
@@ -125,7 +115,6 @@ new class extends Component
                     <option value="dibatalkan">Dibatalkan</option>
                 </flux:select>
 
-                {{-- Total --}}
                 <flux:input
                     type="number"
                     label="Total Price"

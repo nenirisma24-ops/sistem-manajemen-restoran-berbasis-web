@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('detail_pesanans', function (Blueprint $table) {
             $table->id();
-            $table->integer('pesanan_id')->nullable();
-            $table->integer('name')->nullable();
+            $table->foreignId('pesanan_id')->constrained('pesanans')->onDelete('cascade');
+            $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
             $table->integer('jumlah')->nullable();
             $table->integer('subtotal')->nullable();
             $table->timestamps();

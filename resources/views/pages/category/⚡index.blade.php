@@ -18,7 +18,7 @@ new class extends Component {
     {
         $this->dispatch('edit-category', id: $id);
     }
-};
+}; 
 ?>
 
 <div class="max-w-7xl mx-auto space-y-4">

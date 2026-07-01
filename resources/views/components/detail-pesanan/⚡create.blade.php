@@ -26,16 +26,14 @@ new class extends Component
             'Detail Pesanan created successfully'
         );
 
-        $this->redirectRoute(
-            'detail-pesanan.index',
-            navigate: true
-        );
+        // Menghapus 'navigate: true' agar halaman melakukan reload bersih pasca simpan data
+        $this->redirectRoute('detail-pesanan.index');
     }
-   public function resetForm()
+
+    public function resetForm()
     {
         $this->resetValidation();
 
-        // Periksa apakah properti $form sudah diinisialisasi
         if (isset($this->form)) {
             $this->form->reset();
         }
@@ -65,6 +63,7 @@ new class extends Component
                     placeholder="Enter pesanan ID"
                     wire:model="form.pesanan_id"
                 />  
+                @error('form.pesanan_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 
                 <flux:select
                     label="Menu"
@@ -76,8 +75,7 @@ new class extends Component
                         <option value="{{ $menu->id }}">{{ $menu->name }}</option>
                     @endforeach
                 </flux:select>
-
-
+                @error('form.menu_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 
                 <flux:input
                     label="Jumlah"
@@ -86,21 +84,22 @@ new class extends Component
                     placeholder="Enter jumlah"
                     wire:model="form.jumlah"
                 />
+                @error('form.jumlah') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
 
                 <flux:input
                     label="Subtotal"
                     type="number"
-                    min="1"
                     placeholder="Enter subtotal"
                     wire:model="form.subtotal"
                 />
+                @error('form.subtotal') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                 <flux:modal.close>
                     <flux:button variant="outline" color="neutral">Cancel</flux:button>
                 </flux:modal.close>
-                     <flux:button type="submit" variant="primary">
+                <flux:button type="submit" variant="primary">
                     Create
                 </flux:button>
             </div>

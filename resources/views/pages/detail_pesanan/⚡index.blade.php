@@ -38,11 +38,12 @@ new class extends Component
             Create Detail Pesanan
         </flux:button>
     </flux:modal.trigger>
-
+    {{-- Livewire Components --}}
     <livewire:detail-pesanan.create />
     <livewire:detail-pesanan.edit />
 
     <x-flash-message />
+
 
     <div class="overflow-x-auto">
 
@@ -73,7 +74,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            {{ $detailPesanan->menu?->nama_menu ?? '-' }}
+                            {{ $detailPesanan->menu?->name ?? '-' }}
                         </flux:table.cell>
 
                         <flux:table.cell>
@@ -81,7 +82,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            {{ $detailPesanan->subtotal }}
+                            Rp {{ number_format($detailPesanan->subtotal, 0, ',', '.') }}
                         </flux:table.cell>
 
                         <flux:table.cell>
