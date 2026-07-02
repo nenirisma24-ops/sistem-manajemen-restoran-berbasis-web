@@ -11,6 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/detail-pesanan', 'pages::detail_pesanan.index')->name('detail-pesanan.index');
     Route::livewire('/tables', 'pages::table.index')->name('table.index');
     Route::livewire('/pesanans', 'pages::pesanan.index')->name('pesanan.index');
+    Route::livewire('/payments', 'pages::payment.index')->name('payment.index');
 });
 
 require __DIR__.'/settings.php';

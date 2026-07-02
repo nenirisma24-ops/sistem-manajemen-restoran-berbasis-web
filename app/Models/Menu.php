@@ -18,4 +18,9 @@ class Menu extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function detailPesanans()
+    {
+    return $this->hasMany(Detail_Pesanan::class, 'menu_id');
+    }
 }

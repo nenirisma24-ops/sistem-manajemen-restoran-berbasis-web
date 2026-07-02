@@ -30,6 +30,9 @@
                     <flux:sidebar.item icon="receipt-percent" :href="route('pesanan.index')" :current="request()->routeIs('pesanan.index')" wire:navigate>
                         {{ __('Pesanans') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="credit-card" :href="route('payment.index')" :current="request()->routeIs('payment.index')" wire:navigate>
+                        {{ __('Payments') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group> </flux:sidebar.nav>
                 
 

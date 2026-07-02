@@ -19,6 +19,6 @@ class Detail_Pesanan extends Model
 
     public function menu() : BelongsTo
     {
-        return $this->BelongsTo(Menu::class, 'menu_id');
+        return $this->belongsTo(Menu::class, 'menu_id');
     }
 }

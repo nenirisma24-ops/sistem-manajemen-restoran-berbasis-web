@@ -3,34 +3,36 @@
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Flux\Flux;
-use App\Models\Detail_Pesanan;
+use App\Models\Payment;
 use App\Models\Pesanan;
-use App\Models\Menu;
-use App\Livewire\Forms\Detail_PesananForm;
+use App\Livewire\Forms\PaymentForm;
 
 new class extends Component
 {
-    public Detail_PesananForm $form;
+    public PaymentForm $form;
 
-    #[On('edit-detail-pesanan')]
-    public function editDetailPesanan($id)
+    #[On('edit-payment')]
+    public function editPayment($id)
     {
-        $detail = Detail_Pesanan::findOrFail($id);
+        $payment = Payment::findOrFail($id);
 
-        $this->form->setDetailPesanan($detail);
+        $this->form->setPayment($payment);
 
-        Flux::modal('edit-detail-pesanan')->show();
+        Flux::modal('edit-payment')->show();
     }
 
-    public function updateDetailPesanan()
+    public function updatePayment()
     {
         $this->form->update();
 
-        Flux::modal('edit-detail-pesanan')->close();
+        Flux::modal('edit-payment')->close();
 
-        $this->dispatch('refresh-detail-pesanans');
+        session()->flash('success', 'Payment updated successfully');
 
-        session()->flash('success', 'Detail pesanan updated successfully');
+        return $this->redirectRoute(
+            'payment.index',
+            navigate: true
+        );
     }
 
     public function resetForm()
@@ -42,35 +44,33 @@ new class extends Component
         }
     }
 
-    #[On('confirm-delete')]
+    #[On('delete-payment')]
     public function confirmDelete($id)
     {
-        $detail = Detail_Pesanan::findOrFail($id);
+        $payment = Payment::findOrFail($id);
 
-        $this->form->setDetailPesanan($detail);
+        $this->form->setPayment($payment);
 
-        Flux::modal('delete-detail-pesanan')->show();
+        Flux::modal('delete-payment')->show();
     }
 
-    public function deleteDetailPesanan()
+    public function deletePayment()
     {
-        $this->form->detailPesanan->delete();
+        $this->form->payment->delete();
 
-        Flux::modal('delete-detail-pesanan')->close();
+        Flux::modal('delete-payment')->close();
 
-        $this->dispatch('refresh-detail-pesanans');
+        session()->flash('success', 'Payment deleted successfully');
 
-        session()->flash('success', 'Detail pesanan deleted successfully');
+        return $this->redirectRoute(
+            'payment.index',
+            navigate: true
+        );
     }
 
     public function pesanans()
     {
-        return Pesanan::orderBy('id')->get();
-    }
-
-    public function menus()
-    {
-        return Menu::orderBy('name')->get();
+        return Pesanan::latest()->get();
     }
 };
 
@@ -80,21 +80,23 @@ new class extends Component
 
     {{-- Edit Modal --}}
     <flux:modal
-        name="edit-detail-pesanan"
+        name="edit-payment"
         class="md:w-[600px]"
         x-on:close="$wire.resetForm()"
     >
 
-        <form wire:submit="updateDetailPesanan" class="space-y-6">
+        <form wire:submit="updatePayment" class="space-y-6">
 
             <div>
+
                 <flux:heading size="lg">
-                    Edit Detail Pesanan
+                    Edit Payment
                 </flux:heading>
 
                 <flux:text>
-                    Update detail pesanan information.
+                    Update payment information.
                 </flux:text>
+
             </div>
 
             <flux:select
@@ -103,34 +105,42 @@ new class extends Component
             >
                 @foreach($this->pesanans() as $pesanan)
                     <option value="{{ $pesanan->id }}">
-                        Pesanan #{{ $pesanan->id }} - {{ $pesanan->user->name ?? 'Unknown' }}
+                        Pesanan #{{ $pesanan->id }}
                     </option>
                 @endforeach
             </flux:select>
 
             <flux:select
-                label="Menu"
-                wire:model="form.menu_id"
+                label="Payment Method"
+                wire:model="form.payment_method"
             >
-                @foreach($this->menus() as $menu)
-                    <option value="{{ $menu->id }}">
-                        {{ $menu->name }} - Rp{{ number_format($menu->price, 0, ',', '.') }}
-                    </option>
-                @endforeach
+                <option value="Cash">Cash</option>
+                <option value="Transfer">Transfer</option>
+                <option value="QRIS">QRIS</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="Credit Card">Credit Card</option>
             </flux:select>
 
             <flux:input
                 type="number"
-                label="Jumlah"
-                min="1"
-                wire:model="form.jumlah"
+                label="Payment Total"
+                wire:model="form.payment_total"
             />
 
             <flux:input
-                type="number"
-                label="Subtotal"
-                wire:model="form.subtotal"
+                type="date"
+                label="Payment Date"
+                wire:model="form.payment_date"
             />
+
+            <flux:select
+                label="Payment Status"
+                wire:model="form.payment_status"
+            >
+                <option value="Pending">Pending</option>
+                <option value="Paid">Paid</option>
+                <option value="Failed">Failed</option>
+            </flux:select>
 
             <div class="flex justify-end gap-2">
 
@@ -155,17 +165,17 @@ new class extends Component
 
     {{-- Delete Modal --}}
     <flux:modal
-        name="delete-detail-pesanan"
+        name="delete-payment"
         class="md:w-[450px]"
         x-on:close="$wire.resetForm()"
     >
 
-        <form wire:submit="deleteDetailPesanan" class="space-y-6">
+        <form wire:submit="deletePayment" class="space-y-6">
 
             <div>
 
                 <flux:heading size="lg">
-                    Delete Detail Pesanan
+                    Delete Payment
                 </flux:heading>
 
                 <flux:text>

@@ -32,8 +32,8 @@ new class extends Component
 
     <flux:separator />
 
-    <div class="flex justify-end">
-
+    {{-- Create Button --}}
+    <div class="mb-4">
         <flux:modal.trigger name="create-pesanan">
             <flux:button
                 variant="primary"
@@ -42,7 +42,6 @@ new class extends Component
                 Create Pesanan
             </flux:button>
         </flux:modal.trigger>
-
     </div>
 
     {{-- Modal Components --}}
@@ -63,7 +62,7 @@ new class extends Component
                 <flux:table.column>Status</flux:table.column>
                 <flux:table.column>Total Price</flux:table.column>
                 <flux:table.column>Created At</flux:table.column>
-                <flux:table.column>Actions</flux:table.column>
+                <flux:table.column align="end">Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
@@ -100,29 +99,38 @@ new class extends Component
                             {{ $pesanan->created_at->diffForHumans() }}
                         </flux:table.cell>
 
-                        <flux:table.cell>
+                        <flux:table.cell align="end">
 
-                            <div class="flex gap-2">
-
-                                <flux:button
-                                    size="sm"
-                                    icon="pencil"
-                                    variant="filled"
-                                    wire:click="$dispatch('edit-pesanan', { id: {{ $pesanan->id }} })"
-                                >
-                                    Edit
-                                </flux:button>
+                            <flux:dropdown position="bottom end">
 
                                 <flux:button
+                                    icon="ellipsis-horizontal"
+                                    variant="ghost"
                                     size="sm"
-                                    icon="trash"
-                                    variant="danger"
-                                    wire:click="$dispatch('delete-pesanan', { id: {{ $pesanan->id }} })"
-                                >
-                                    Delete
-                                </flux:button>
+                                />
 
-                            </div>
+                                <flux:menu>
+
+                                    <flux:menu.item
+                                        icon="pencil"
+                                        wire:click="$dispatch('edit-pesanan', { id: {{ $pesanan->id }} })"
+                                    >
+                                        Edit
+                                    </flux:menu.item>
+
+                                    <flux:menu.separator />
+
+                                    <flux:menu.item
+                                        icon="trash"
+                                        variant="danger"
+                                        wire:click="$dispatch('delete-pesanan', { id: {{ $pesanan->id }} })"
+                                    >
+                                        Delete
+                                    </flux:menu.item>
+
+                                </flux:menu>
+
+                            </flux:dropdown>
 
                         </flux:table.cell>
 

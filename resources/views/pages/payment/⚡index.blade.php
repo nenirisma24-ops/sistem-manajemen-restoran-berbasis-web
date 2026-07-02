@@ -3,16 +3,18 @@
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
-use App\Models\Table;
+use App\Models\Payment;
 
 new class extends Component
 {
     use WithPagination;
 
     #[Computed]
-    public function tables()
+    public function payments()
     {
-        return Table::latest()->paginate(10);
+        return Payment::with('pesanan')
+            ->latest()
+            ->paginate(10);
     }
 };
 
@@ -21,10 +23,10 @@ new class extends Component
 <div class="max-w-7xl mx-auto space-y-6">
 
     <div>
-        <flux:heading size="xl">Tables</flux:heading>
+        <flux:heading size="xl">Payment</flux:heading>
 
         <flux:subheading>
-            Manage your restaurant tables
+            Manage your payment data
         </flux:subheading>
     </div>
 
@@ -32,51 +34,69 @@ new class extends Component
 
     {{-- Create Button --}}
     <div class="mb-4">
-        <flux:modal.trigger name="create-table">
-            <flux:button variant="primary" icon="plus">
-                Create Table
+        <flux:modal.trigger name="create-payment">
+            <flux:button
+                variant="primary"
+                icon="plus"
+            >
+                Create Payment
             </flux:button>
         </flux:modal.trigger>
     </div>
 
     {{-- Modal Components --}}
-    <livewire:table.create />
-    <livewire:table.edit />
+    <livewire:payment.create />
+    <livewire:payment.edit />
 
     <x-flash-message />
 
     <div class="overflow-x-auto">
 
-        <flux:table :paginate="$this->tables">
+        <flux:table :paginate="$this->payments">
 
             <flux:table.columns>
                 <flux:table.column>No</flux:table.column>
-                <flux:table.column>Table Number</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
+                <flux:table.column>Pesanan</flux:table.column>
+                <flux:table.column>Payment Method</flux:table.column>
+                <flux:table.column>Payment Total</flux:table.column>
+                <flux:table.column>Payment Date</flux:table.column>
+                <flux:table.column>Payment Status</flux:table.column>
                 <flux:table.column>Created At</flux:table.column>
                 <flux:table.column align="end">Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
 
-                @forelse ($this->tables as $table)
+                @forelse ($this->payments as $payment)
 
-                    <flux:table.row :key="$table->id">
+                    <flux:table.row :key="$payment->id">
 
                         <flux:table.cell>
-                            {{ $loop->iteration + $this->tables->firstItem() - 1 }}
+                            {{ $loop->iteration + $this->payments->firstItem() - 1 }}
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            {{ $table->number_table }}
+                            Pesanan #{{ $payment->pesanan_id }}
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            {{ ucfirst($table->status) }}
+                            {{ $payment->payment_method }}
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            {{ $table->created_at->diffForHumans() }}
+                            Rp {{ number_format($payment->payment_total, 0, ',', '.') }}
+                        </flux:table.cell>
+
+                        <flux:table.cell>
+                            {{ \Carbon\Carbon::parse($payment->payment_date)->format('d-m-Y') }}
+                        </flux:table.cell>
+
+                        <flux:table.cell>
+                            {{ ucfirst($payment->payment_status) }}
+                        </flux:table.cell>
+
+                        <flux:table.cell>
+                            {{ $payment->created_at->diffForHumans() }}
                         </flux:table.cell>
 
                         <flux:table.cell align="end">
@@ -93,7 +113,7 @@ new class extends Component
 
                                     <flux:menu.item
                                         icon="pencil"
-                                        wire:click="$dispatch('edit-table', { id: {{ $table->id }} })"
+                                        wire:click="$dispatch('edit-payment', { id: {{ $payment->id }} })"
                                     >
                                         Edit
                                     </flux:menu.item>
@@ -103,7 +123,7 @@ new class extends Component
                                     <flux:menu.item
                                         icon="trash"
                                         variant="danger"
-                                        wire:click="$dispatch('delete-table', { id: {{ $table->id }} })"
+                                        wire:click="$dispatch('delete-payment', { id: {{ $payment->id }} })"
                                     >
                                         Delete
                                     </flux:menu.item>
@@ -120,8 +140,8 @@ new class extends Component
 
                     <flux:table.row>
 
-                        <flux:table.cell colspan="5" class="text-center py-8">
-                            No table data found.
+                        <flux:table.cell colspan="8" class="text-center py-8">
+                            No payment data found.
                         </flux:table.cell>
 
                     </flux:table.row>
