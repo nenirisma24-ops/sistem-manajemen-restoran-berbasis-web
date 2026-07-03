@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\WithPagination;
 use App\Models\Detail_Pesanan;
 
@@ -15,9 +16,10 @@ new class extends Component
         return Detail_Pesanan::latest()->paginate(10);
     }       
     
+    
     public function edit($id)
     {
-        $this->dispatch('edit-Detail_Pesanan', id: $id);
+        $this->dispatch('edit-detail-pesanan', id: $id);
     }
 };
 ?>
@@ -38,12 +40,12 @@ new class extends Component
             Create Detail Pesanan
         </flux:button>
     </flux:modal.trigger>
+    
     {{-- Livewire Components --}}
     <livewire:detail-pesanan.create />
     <livewire:detail-pesanan.edit />
 
     <x-flash-message />
-
 
     <div class="overflow-x-auto">
 
@@ -113,7 +115,7 @@ new class extends Component
                                     <flux:menu.item
                                         variant="danger"
                                         icon="trash"
-                                        wire:click="$dispatch('confirm-delete', { id: {{ $detailPesanan->id }} })">
+                                        wire:click="$dispatch('confirm-delete-detail', { id: {{ $detailPesanan->id }} })">
                                         Delete
                                     </flux:menu.item>
 

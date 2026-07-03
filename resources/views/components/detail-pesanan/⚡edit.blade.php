@@ -12,9 +12,12 @@ new class extends Component
 {
     public Detail_PesananForm $form;
 
+    public $selectedDetailId;
+
     #[On('edit-detail-pesanan')]
     public function editDetailPesanan($id)
     {
+        $this->selectedDetailId = $id;
         $detail = Detail_Pesanan::findOrFail($id);
 
         $this->form->setDetailPesanan($detail);
@@ -36,15 +39,17 @@ new class extends Component
     public function resetForm()
     {
         $this->resetValidation();
+        $this->selectedDetailId = null;
 
         if (isset($this->form)) {
             $this->form->reset();
         }
     }
 
-    #[On('confirm-delete')]
-    public function confirmDelete($id)
+    #[On('confirm-delete-detail')]
+    public function confirmDeleteDetail($id)
     {
+        $this->selectedDetailId = $id;
         $detail = Detail_Pesanan::findOrFail($id);
 
         $this->form->setDetailPesanan($detail);
@@ -54,11 +59,15 @@ new class extends Component
 
     public function deleteDetailPesanan()
     {
-        $this->form->detailPesanan->delete();
+       
+        if ($this->selectedDetailId) {
+            Detail_Pesanan::destroy($this->selectedDetailId);
+        }
 
         Flux::modal('delete-detail-pesanan')->close();
 
         $this->dispatch('refresh-detail-pesanans');
+        $this->resetForm();
 
         session()->flash('success', 'Detail pesanan deleted successfully');
     }
@@ -101,6 +110,7 @@ new class extends Component
                 label="Pesanan"
                 wire:model="form.pesanan_id"
             >
+                <option value="">-- Pilih Pesanan --</option>
                 @foreach($this->pesanans() as $pesanan)
                     <option value="{{ $pesanan->id }}">
                         Pesanan #{{ $pesanan->id }} - {{ $pesanan->user->name ?? 'Unknown' }}
@@ -112,6 +122,7 @@ new class extends Component
                 label="Menu"
                 wire:model="form.menu_id"
             >
+                <option value="">-- Pilih Menu --</option>
                 @foreach($this->menus() as $menu)
                     <option value="{{ $menu->id }}">
                         {{ $menu->name }} - Rp{{ number_format($menu->price, 0, ',', '.') }}
