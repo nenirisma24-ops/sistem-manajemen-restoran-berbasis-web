@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Component;
+use Flux\Flux;
 use App\Livewire\Forms\MenuForm;
 use App\Models\Category;
 use Livewire\Attributes\Computed;
@@ -21,7 +22,7 @@ new class extends Component {
 
     public function save()
     {
-        $this->form->store();
+        $this->form->store($this->image);
 
         Flux::modal('create-menu')->close();
 
@@ -81,7 +82,13 @@ new class extends Component {
 
                 <flux:input label="Stock" type="number" wire:model="form.stock" />
 
-                <flux:input label="Gambar Menu" type="file" wire:model="form.image" accept="image/*" />
+                <label class="block text-sm font-medium text-zinc-700">Gambar Menu</label>
+                <input
+                    type="file"
+                    wire:model="image"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                    class="block w-full text-sm text-zinc-700 file:mr-4 file:rounded-md file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-700 hover:file:bg-zinc-200"
+                />
                 
             </div>
 
