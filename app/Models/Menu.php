@@ -12,6 +12,7 @@ class Menu extends Model
         'description',
         'price',
         'stock',
+        'image',
     ];
 
     public function category()

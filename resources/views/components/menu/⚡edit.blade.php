@@ -4,10 +4,14 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use App\Models\Menu;
 use App\Livewire\Forms\MenuForm;
+use Livewire\WithFileUploads;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public MenuForm $form;
+    public $image;
 
     #[On('edit-menu')]
     public function editMenu($id)
@@ -15,13 +19,14 @@ new class extends Component
         $menu = Menu::findOrFail($id);
 
         $this->form->setMenu($menu);
+        $this->image = $menu->image; 
 
         Flux::modal('edit-menu')->show();
     }
 
     public function updateMenu()
     {
-        $this->form->update();
+        $this->form->update($this->image);
 
         Flux::modal('edit-menu')->close();
 
@@ -39,6 +44,7 @@ new class extends Component
     public function resetForm()
     {
         $this->resetValidation();
+        $this->image = null;
         $this->form->reset();
     }
 
@@ -54,6 +60,10 @@ new class extends Component
 
     public function deleteMenu()
     {
+        if ($this->form->menu->image) {
+            Storage::disk('public')->delete($this->form->menu->image);
+        }
+
         $this->form->menu->delete();
 
         Flux::modal('delete-menu')->close();
@@ -74,10 +84,10 @@ new class extends Component
 
 <div>
 
-    {{-- EDIT MODAL --}}
     <flux:modal
         name="edit-menu"
         class="md:w-150"
+        x-on:close="$wire.resetForm()"
     >
 
         <form
@@ -115,6 +125,20 @@ new class extends Component
                     wire:model="form.stock"
                 />
 
+                @if ($image && is_string($image))
+                    <div class="space-y-2">
+                        <span class="block text-sm font-medium text-zinc-800">Current Image:</span>
+                        <img src="{{ asset('storage/' . $image) }}" class="w-20 h-20 object-cover rounded-lg border border-zinc-200">
+                    </div>
+                @endif
+
+                <flux:input 
+                    label="Ubah Gambar Menu (Opsional)" 
+                    type="file" 
+                    wire:model="image" 
+                    accept="image/*" 
+                />
+
             </div>
 
             <div class="flex justify-end gap-3">
@@ -138,7 +162,6 @@ new class extends Component
 
     </flux:modal>
 
-    {{-- DELETE MODAL --}}
     <flux:modal
         name="delete-menu"
         class="md:w-96"

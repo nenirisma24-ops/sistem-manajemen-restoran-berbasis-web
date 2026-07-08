@@ -58,6 +58,7 @@ new class extends Component
 
             <flux:table.columns>
                 <flux:table.column>No</flux:table.column>
+                <flux:table.column>Image</flux:table.column>
                 <flux:table.column>Name</flux:table.column>
                 <flux:table.column>Description</flux:table.column>
                 <flux:table.column>Price</flux:table.column>
@@ -77,11 +78,24 @@ new class extends Component
                             {{ $loop->iteration + $this->menus->firstItem() - 1 }}
                         </flux:table.cell>
 
+                        {{-- Image (Dikunci ukurannya agar tidak merusak tinggi baris) --}}
+                        <flux:table.cell>
+                            @if($menu->image)
+                                <img src="{{ asset('storage/' . $menu->image) }}" 
+                                    alt="{{ $menu->name }}" 
+                                    class="w-14 h-14 min-w-14 min-h-14 object-cover aspect-square rounded-lg shadow-sm border border-zinc-200 block">
+                            @else
+                                <div class="w-14 h-14 min-w-14 min-h-14 bg-zinc-100 rounded-lg flex items-center justify-center text-[10px] text-zinc-400 border border-dashed border-zinc-300">
+                                    No Photo
+                                </div>
+                            @endif
+                        </flux:table.cell>
+
                         {{-- Name --}}
                         <flux:table.cell>
                             {{ $menu->name }}
                         </flux:table.cell>
-
+                        
                         {{-- Description --}}
                         <flux:table.cell>
                             {{ $menu->description }}
@@ -144,11 +158,10 @@ new class extends Component
 
                     <flux:table.row>
 
-                        <flux:table.cell colspan="7">
+                        <flux:table.cell colspan="8">
                             <div class="text-center py-8 text-zinc-500">
                                 No menu found.
                             </div>
-
                         </flux:table.cell>
 
                     </flux:table.row>

@@ -4,9 +4,14 @@ use Livewire\Component;
 use App\Livewire\Forms\MenuForm;
 use App\Models\Category;
 use Livewire\Attributes\Computed;
+use Livewire\WithFileUploads;
 
 new class extends Component {
+    use WithFileUploads;
+
     public MenuForm $form;
+
+    public $image;
 
     #[Computed]
     public function categories()
@@ -34,6 +39,7 @@ new class extends Component {
     public function resetForm()
     {
         $this->resetValidation();
+        $this->image = null;
 
         // Periksa apakah properti $form sudah diinisialisasi
         if (isset($this->form)) {
@@ -75,6 +81,8 @@ new class extends Component {
 
                 <flux:input label="Stock" type="number" wire:model="form.stock" />
 
+                <flux:input label="Gambar Menu" type="file" wire:model="form.image" accept="image/*" />
+                
             </div>
 
             <div class="flex justify-end gap-3">
