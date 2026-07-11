@@ -4,137 +4,86 @@
 
 Aplikasi menggunakan **Laravel 13 + Livewire v4 + Flux UI v2**.
 
-Tidak ada Controller tradisional. Seluruh CRUD dan logika bisnis ditangani oleh **Livewire anonymous components** yang didefinisikan langsung di file Blade (`⚡` prefix).
+Seluruh CRUD dan logika bisnis ditangani oleh **Livewire anonymous components** yang didefinisikan langsung di file Blade (`⚡` prefix).
 
 ---
 
-## Alur Pesanan Baru (`/order-baru`)
+## Halaman Pesanan Baru (`/order-baru`)
 
-### Tampilan
+Halaman **single-page** (bukan wizard) yang menggabungkan pemilihan menu, keranjang, pemilihan meja, dan pembayaran dalam satu tampilan — terinspirasi dari desain food ordering app modern.
 
-Halaman `/order-baru` adalah wizard 3 langkah dalam satu halaman:
+### Layout
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  1 ● Pilih Menu  ────  2 ○ Pilih Meja  ────  3 ○   │
-│                                                     │
-│  ┌────────────────────────┐  ┌────────────────────┐ │
-│  │  Kategori Makanan      │  │  Keranjang         │ │
-│  │  ┌──────┐ ┌──────┐    │  │  Nasi Goreng x2    │ │
-│  │  │ Foto │ │ Foto │    │  │  Es Teh x1         │ │
-│  │  │ Nasi │ │ Mie  │    │  │                    │ │
-│  │  │+Tambah││+Tambah│   │  │  Total: Rp 55.000  │ │
-│  │  └──────┘ └──────┘    │  │                    │ │
-│  │  Kategori Minuman      │  │ [Lanjut ke Meja]   │ │
-│  │  ┌──────┐ ┌──────┐    │  └────────────────────┘ │
-│  │  │ ...  │ │ ...  │    │                         │
-│  └────────────────────────┘                         │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────┬──────────────────────┐
+│  🔍 Cari menu...   🔔 👤      │  Pesanan             │
+│                                 │                      │
+│  [🍕 Pizza] [🍔 Burger] [🍟]  │  • Seblak  x2 Rp40rb │
+│                                 │  • Nasgor  x1 Rp30rb │
+│  ── Makanan ──                 │                      │
+│  ┌──────┐ ┌──────┐ ┌──────┐   │  Meja:      [▼ Meja] │
+│  │  📷  │ │  📷  │ │  📷  │   │  Bayar:   [▼ QRIS]  │
+│  │Seblak│ │Nasgor│ │Mie   │   │                      │
+│  │Rp20rb│ │Rp30rb│ │Rp15rb│   │  Sub Total  Rp70.000 │
+│  │[Pesan]│ │Pesan │ │Pesan │   │  Total      Rp70.000 │
+│  └──────┘ └──────┘ └──────┘   │                      │
+│                                 │  ┌──────────────────┐│
+│  ── Minuman ──                  │  │  Buat Pesanan    ││
+│  ┌──────┐ ┌──────┐             │  └──────────────────┘│
+│  │ ...  │ │ ...  │             │                      │
+│  └──────┘ └──────┘             │                      │
+└─────────────────────────────────┴──────────────────────┘
 ```
 
-### Langkah 1: Pilih Menu
+### Komponen Halaman
 
-- Menu ditampilkan dalam **grid card** dikelompokkan per kategori
-- Setiap card menampilkan: foto, nama, harga
-- Klik **"+ Tambah"** untuk memasukkan menu ke keranjang
-- Setelah di keranjang, muncul tombol **`+` / `-`** untuk atur jumlah
-- Keranjang (sidebar kanan) menampilkan semua item, quantity, dan total实时
-- Tombol **"Lanjut ke Meja"** di bagian bawah keranjang
+| Area | Elemen | Deskripsi |
+|---|---|---|
+| **Top Bar** | Search | Input cari menu, filter berdasarkan nama |
+| | Tombol Filter | Filter tambahan (opsional) |
+| | Notifikasi | Badge jumlah item di keranjang |
+| | User Avatar | Inisial user login |
+| **Categories** | Chips horizontal | Kategori menu, klik untuk filter. Pilihan aktif di-highlight. Tombol ✕ untuk reset. |
+| **Menu Grid** | Card menu | 3 kolom per baris. Card terdiri dari: gambar (tinggi 144px, object-cover), nama, harga, tombol "Pesan" atau +/− qty. Menu yang sudah di keranjang ditandai dengan ring oranye dan badge jumlah di pojok gambar. |
+| **Cart Sidebar** | Header | "Pesanan" + badge jumlah item |
+| | Cart Items | Daftar item: nama, harga, qty +/−. Scrollable jika banyak. |
+| | Pilih Meja | Dropdown meja (hanya tersedia) |
+| | Metode Bayar | Dropdown: Cash, Transfer, QRIS, Debit Card, Credit Card |
+| | Summary | Sub Total → Total |
+| | Tombol "Buat Pesanan" | Full-width oranye. Validasi meja & metode bayar sebelum submit. |
 
-### Langkah 2: Pilih Meja
+### Alur Pengguna
 
-- Dropdown **"Nomor Meja"** — hanya menampilkan meja dengan status `tersedia`
-- Tabel **Ringkasan Pesanan** — semua item menu, harga, jumlah, subtotal
-- Sidebar kanan: rincian total per item dan total keseluruhan
-- Tombol **"Lanjut ke Pembayaran"** dan **"Kembali"**
-
-### Langkah 3: Pembayaran
-
-- Dropdown **"Metode Bayar"**: Cash, Transfer, QRIS, Debit Card, Credit Card
-- Tabel **Ringkasan Pesanan** (lengkap)
-- Sidebar kanan: konfirmasi meja, tanggal, metode bayar, total bayar
-- Tombol **"Buat Pesanan"** untuk menyelesaikan
+1. **Pilih Menu** — Klik tombol "Pesan" pada card menu → item masuk ke keranjang kanan
+2. **Atur Quantity** — Gunakan tombol +/− baik di card menu maupun di keranjang
+3. **Filter** — Klik kategori untuk filter menu, atau gunakan search
+4. **Pilih Meja** — Dropdown di panel kanan
+5. **Pilih Metode Bayar** — Dropdown di panel kanan
+6. **Buat Pesanan** — Klik tombol "Buat Pesanan" → semua tersimpan dalam 1 transaksi
 
 ### Proses Simpan
 
-Ketika tombol **"Buat Pesanan"** diklik, sistem menjalankan dalam 1 transaksi:
+Ketika tombol **"Buat Pesanan"** diklik:
 
-1. **Create `Pesanan`**
-   - `user_id` = user yang sedang login
-   - `table_id` = meja yang dipilih
-   - `order_date` = hari ini
-   - `status` = `pending`
-   - `total_price` = hasil kalkulasi dari semua item
+1. **Validasi** — cart tidak kosong, meja terpilih, metode bayar terpilih
+2. **Create `Pesanan`** — `user_id` (login), `table_id`, `order_date` (hari ini), `status` (pending), `total_price` (kalkulasi otomatis)
+3. **Create `Detail_Pesanan`** — setiap item di keranjang
+4. **Create `Payment`** — `payment_status` = Pending
+5. **Update meja** — `status` → "tidak tersedia"
+6. **Redirect** → halaman daftar Pesanan
 
-2. **Create `Detail_Pesanan`** (per item di keranjang)
-   - `pesanan_id` = dari pesanan yang baru dibuat
-   - `menu_id`, `jumlah`, `subtotal`
-
-3. **Create `Payment`**
-   - `pesanan_id` = dari pesanan yang baru dibuat
-   - `payment_method` = metode yang dipilih
-   - `payment_total` = total pesanan
-   - `payment_date` = hari ini
-   - `payment_status` = `Pending`
-
-4. **Update meja** → `status` = `tidak tersedia`
-
-5. Redirect ke halaman **daftar Pesanan** dengan flash message sukses
-
----
-
-## File yang Terlibat
-
-### Wizard (BARU)
-| File | Fungsi |
-|---|---|
-| `resources/views/pages/order/⚡create.blade.php` | Halaman wizard 3 langkah (Livewire component) |
-| `routes/web.php:9` | Route: `GET /order-baru → order.create` |
-
-### Model (DIUBAH)
-| File | Perubahan |
-|---|---|
-| `app/Models/Pesanan.php` | Tambah relasi `detailPesanans(): HasMany`, `payments(): HasMany` |
-| `app/Models/Detail_Pesanan.php` | Tambah relasi `pesanan(): BelongsTo` |
-| `app/Models/Table.php` | Fix `pesanans()` — sebelumnya refer ke `Order` (tidak ada) |
-
-### Navigasi (DIUBAH)
-| File | Perubahan |
-|---|---|
-| `resources/views/layouts/app/sidebar.blade.php` | Tambah menu "Pesanan Baru" |
-| `resources/views/dashboard.blade.php` | Tambah tombol "Buat Pesanan Baru" di hero |
-
----
-
-## Data Flow Diagram
-
-```
-User → /order-baru
-         │
-         ├─ Step 1: Pilih Menu
-         │    ├─ UI: grid card per kategori + cart sidebar
-         │    └─ State: $cart (array of items)
-         │
-         ├─ Step 2: Pilih Meja
-         │    ├─ UI: dropdown meja (tersedia) + ringkasan
-         │    └─ State: $table_id
-         │
-         ├─ Step 3: Pembayaran
-         │    ├─ UI: pilih metode bayar + konfirmasi
-         │    └─ State: $payment_method
-         │
-         └─ Save → Pesanan + Detail_Pesanan + Payment + Update Table
-```
+Semua dalam **DB transaction** — jika ada error, data tidak akan tersimpan sebagian.
 
 ---
 
 ## State Management (Livewire Properties)
 
 ```php
-public int $step = 1;           // Langkah aktif (1, 2, atau 3)
-public array $cart = [];        // Item di keranjang
-public string $table_id = '';   // ID meja terpilih
-public string $payment_method = ''; // Metode bayar
+public array $cart = [];            // Item di keranjang
+public $table_id = '';              // ID meja terpilih
+public $payment_method = '';        // Metode bayar
+public $search = '';                // Kata kunci pencarian
+public $activeCategoryId = null;    // Filter kategori aktif
 ```
 
 ### Struktur Cart Item
@@ -155,29 +104,40 @@ public string $payment_method = ''; // Metode bayar
 |---|---|
 | `$this->categories` | Semua kategori with relasi menus |
 | `$this->availableTables` | Meja dengan status `tersedia` |
-| `$this->cartTotal` | Total harga semua item (price × quantity) |
+| `$this->filteredMenus` | Menu yang difilter berdasarkan search & kategori, dikelompokkan per kategori |
+| `$this->cartTotal` | Total harga semua item |
 | `$this->cartCount` | Total jumlah item (sum of quantities) |
 
 ---
 
-## Menambahkan Menu ke Keranjang
+## File yang Terlibat
 
-Metode `addToCart($menuId)`:
-1. Cari menu berdasarkan ID
-2. Jika sudah ada di keranjang → increment quantity
-3. Jika belum ada → tambah item baru dengan quantity = 1
+### Halaman Pesanan Baru
+| File | Fungsi |
+|---|---|
+| `resources/views/pages/order/⚡create.blade.php` | Halaman single-page pemesanan (Livewire component) |
+| `routes/web.php:9` | Route: `GET /order-baru → order.create` |
 
-Metode `updateQuantity($menuId, $delta)`:
-1. Cari item di keranjang
-2. Jika new quantity ≤ 0 → hapus item
-3. Jika new quantity ≤ stock → update quantity
+### Model (DIUBAH)
+| File | Perubahan |
+|---|---|
+| `app/Models/Pesanan.php` | Tambah relasi `detailPesanans(): HasMany`, `payments(): HasMany` |
+| `app/Models/Detail_Pesanan.php` | Tambah relasi `pesanan(): BelongsTo` |
+| `app/Models/Table.php` | Fix relasi dari `Order` ke `Pesanan` |
+
+### Navigasi & Dashboard
+| File | Perubahan |
+|---|---|
+| `resources/views/layouts/app/sidebar.blade.php` | Tambah menu "Pesanan Baru" |
+| `resources/views/dashboard.blade.php` | Tambah tombol "Buat Pesanan Baru" di hero |
 
 ---
 
 ## Catatan Penting
 
-- Hanya **meja dengan status `tersedia`** yang muncul di dropdown Langkah 2
+- Hanya **meja dengan status `tersedia`** yang muncul di dropdown
 - Setelah pesanan dibuat, status meja otomatis berubah menjadi `tidak tersedia`
 - `total_price` dihitung **otomatis** dari subtotal item — tidak perlu input manual
 - `user_id` menggunakan **user yang sedang login** (kasir/admin)
-- Halaman index/list yang sudah ada (Pesanan, Detail Pesanan, Payment) tetap dipertahankan untuk riwayat dan manajemen
+- Halaman index/list yang sudah ada (Pesanan, Detail Pesanan, Payment) tetap dipertahankan untuk riwayat
+- Semua operasi simpan dibungkus `DB::transaction` — aman dari data setengah jadi

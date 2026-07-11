@@ -11,18 +11,15 @@ use App\Models\Payment;
 
 new class extends Component
 {
-    public int $step = 1;
-
     public array $cart = [];
 
     public $table_id = '';
 
     public $payment_method = '';
 
-    public function mount()
-    {
-        $this->cart = [];
-    }
+    public $search = '';
+
+    public $activeCategoryId = null;
 
     #[Computed]
     public function categories()
@@ -37,11 +34,25 @@ new class extends Component
     }
 
     #[Computed]
+    public function filteredMenus()
+    {
+        $query = Menu::with('category');
+
+        if ($this->search) {
+            $query->where('name', 'like', "%{$this->search}%");
+        }
+
+        if ($this->activeCategoryId) {
+            $query->where('category_id', $this->activeCategoryId);
+        }
+
+        return $query->get()->groupBy(fn($m) => $m->category->name ?? 'Lainnya');
+    }
+
+    #[Computed]
     public function cartTotal()
     {
-        return collect($this->cart)->sum(function ($item) {
-            return $item['price'] * $item['quantity'];
-        });
+        return collect($this->cart)->sum(fn($item) => $item['price'] * $item['quantity']);
     }
 
     #[Computed]
@@ -55,24 +66,22 @@ new class extends Component
         $menu = Menu::find($menuId);
         if (!$menu) return;
 
-        $existing = collect($this->cart)->firstWhere('menu_id', $menuId);
-
-        if ($existing) {
-            foreach ($this->cart as $i => $item) {
-                if ($item['menu_id'] == $menuId) {
+        foreach ($this->cart as $i => $item) {
+            if ($item['menu_id'] == $menuId) {
+                if ($item['quantity'] < $menu->stock) {
                     $this->cart[$i]['quantity']++;
-                    break;
                 }
+                return;
             }
-        } else {
-            $this->cart[] = [
-                'menu_id' => $menu->id,
-                'name' => $menu->name,
-                'price' => $menu->price,
-                'quantity' => 1,
-                'stock' => $menu->stock,
-            ];
         }
+
+        $this->cart[] = [
+            'menu_id' => $menu->id,
+            'name' => $menu->name,
+            'price' => $menu->price,
+            'quantity' => 1,
+            'stock' => $menu->stock,
+        ];
     }
 
     public function updateQuantity($menuId, $delta)
@@ -102,26 +111,9 @@ new class extends Component
         }
     }
 
-    public function nextStep()
+    public function setCategory($categoryId)
     {
-        if ($this->step == 1) {
-            if (empty($this->cart)) {
-                session()->flash('error', 'Pilih minimal 1 menu terlebih dahulu');
-                return;
-            }
-        }
-
-        if ($this->step == 2) {
-            $rules = ['table_id' => 'required|exists:tables,id'];
-            $this->validate($rules, ['table_id.required' => 'Pilih meja terlebih dahulu']);
-        }
-
-        $this->step++;
-    }
-
-    public function previousStep()
-    {
-        $this->step = max(1, $this->step - 1);
+        $this->activeCategoryId = $this->activeCategoryId === $categoryId ? null : $categoryId;
     }
 
     public function save()
@@ -129,7 +121,15 @@ new class extends Component
         $this->validate([
             'table_id' => 'required|exists:tables,id',
             'payment_method' => 'required',
+        ], [
+            'table_id.required' => 'Pilih meja terlebih dahulu',
+            'payment_method.required' => 'Pilih metode pembayaran',
         ]);
+
+        if (empty($this->cart)) {
+            session()->flash('error', 'Pilih minimal 1 menu');
+            return;
+        }
 
         $total = collect($this->cart)->sum(fn($item) => $item['price'] * $item['quantity']);
 
@@ -178,280 +178,185 @@ new class extends Component
 
 ?>
 
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="h-full flex flex-col gap-6">
 
     <x-flash-message />
 
-    {{-- Header & Steps --}}
-    <div class="mb-8">
-        <flux:heading size="xl">Pesanan Baru</flux:heading>
-        <flux:subheading>Buat pesanan baru untuk pelanggan</flux:subheading>
-
-        <div class="mt-6 flex items-center gap-2 text-sm">
-            <div class="flex items-center gap-2 {{ $step >= 1 ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-400' }}">
-                <span class="flex size-8 items-center justify-center rounded-full {{ $step >= 1 ? 'bg-indigo-600 text-white' : 'bg-zinc-200 dark:bg-zinc-700' }} font-semibold text-xs">1</span>
-                <span class="font-medium">Pilih Menu</span>
-            </div>
-            <div class="h-px w-12 {{ $step >= 2 ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-600' }}"></div>
-            <div class="flex items-center gap-2 {{ $step >= 2 ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-400' }}">
-                <span class="flex size-8 items-center justify-center rounded-full {{ $step >= 2 ? 'bg-indigo-600 text-white' : 'bg-zinc-200 dark:bg-zinc-700' }} font-semibold text-xs">2</span>
-                <span class="font-medium">Pilih Meja</span>
-            </div>
-            <div class="h-px w-12 {{ $step >= 3 ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-600' }}"></div>
-            <div class="flex items-center gap-2 {{ $step >= 3 ? 'text-indigo-600 dark:text-indigo-400' : 'text-zinc-400' }}">
-                <span class="flex size-8 items-center justify-center rounded-full {{ $step >= 3 ? 'bg-indigo-600 text-white' : 'bg-zinc-200 dark:bg-zinc-700' }} font-semibold text-xs">3</span>
-                <span class="font-medium">Pembayaran</span>
+    {{-- Top Bar --}}
+    <div class="flex items-center justify-between gap-4">
+        <div class="relative w-96">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-zinc-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
+            <input type="text" wire:model.live="search" placeholder="Cari menu..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white">
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="size-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+            </button>
+            <button class="size-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition relative">
+                <svg class="size-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9"/></svg>
+                <span class="absolute -top-0.5 -right-0.5 size-3.5 rounded-full bg-red-500 text-white text-[8px] flex items-center justify-center font-bold">{{ $this->cartCount }}</span>
+            </button>
+            <div class="size-9 rounded-xl bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
+                {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
             </div>
         </div>
     </div>
 
-    @if ($step == 1)
-        {{-- STEP 1: Pilih Menu --}}
-        <div class="flex gap-6">
-            {{-- Menu Grid --}}
-            <div class="flex-1 min-w-0 space-y-6">
-                @forelse ($this->categories as $category)
-                    <div>
-                        <h3 class="text-base font-bold mb-3 dark:text-white">{{ $category->name }}</h3>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                            @foreach ($category->menus as $menu)
-                                @php
-                                    $inCart = collect($this->cart)->firstWhere('menu_id', $menu->id);
-                                    $qty = $inCart['quantity'] ?? 0;
-                                @endphp
-                                <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 overflow-hidden {{ $qty > 0 ? 'ring-2 ring-indigo-500' : '' }}">
-                                    <div class="h-32 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900">
-                                        @if ($menu->image)
-                                            <img src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}" class="w-full h-full object-cover">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center text-xs text-zinc-400">No Photo</div>
-                                        @endif
-                                    </div>
-                                    <div class="p-2.5">
-                                        <p class="text-sm font-semibold truncate dark:text-white">{{ $menu->name }}</p>
-                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
-                                        <div class="mt-2">
-                                            @if ($qty > 0)
-                                                <div class="flex items-center justify-center gap-2">
-                                                    <button type="button" wire:click="updateQuantity({{ $menu->id }}, -1)" class="size-7 rounded-lg bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-600 transition text-sm font-bold">-</button>
-                                                    <span class="w-6 text-center text-sm font-bold">{{ $qty }}</span>
-                                                    <button type="button" wire:click="updateQuantity({{ $menu->id }}, 1)" class="size-7 rounded-lg bg-indigo-500 text-white flex items-center justify-center hover:bg-indigo-600 transition text-sm font-bold">+</button>
-                                                </div>
-                                            @else
-                                                <button type="button" wire:click="addToCart({{ $menu->id }})" class="w-full py-1.5 rounded-lg bg-indigo-500 text-white text-xs font-semibold hover:bg-indigo-600 transition">+ Tambah</button>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @empty
-                    <div class="text-center py-12 text-zinc-400">Belum ada menu tersedia.</div>
-                @endforelse
-            </div>
+    {{-- Main Content --}}
+    <div class="flex gap-6 flex-1 min-h-0">
 
-            {{-- Cart Sidebar --}}
-            <div class="w-72 shrink-0">
-                <div class="sticky top-6 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-bold dark:text-white">Keranjang</h3>
-                        <span class="text-xs bg-indigo-500 text-white px-2 py-0.5 rounded-full font-semibold">{{ $this->cartCount }} item</span>
-                    </div>
+        {{-- Left: Menu Area --}}
+        <div class="flex-1 min-w-0 flex flex-col gap-4">
 
-                    @if (empty($this->cart))
-                        <p class="text-sm text-zinc-400 py-6 text-center">Belum ada menu dipilih</p>
-                    @else
-                        <div class="space-y-2 max-h-96 overflow-y-auto">
-                            @foreach ($this->cart as $item)
-                                <div class="flex items-center justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-medium truncate">{{ $item['name'] }}</p>
-                                        <p class="text-xs text-zinc-500">{{ $item['quantity'] }} x Rp {{ number_format($item['price'], 0, ',', '.') }}</p>
-                                    </div>
-                                    <div class="flex items-center gap-1 ml-2">
-                                        <button type="button" wire:click="updateQuantity({{ $item['menu_id'] }}, -1)" class="size-6 rounded bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-600 text-xs font-bold">-</button>
-                                        <span class="w-5 text-center text-xs font-bold">{{ $item['quantity'] }}</span>
-                                        <button type="button" wire:click="updateQuantity({{ $item['menu_id'] }}, 1)" class="size-6 rounded bg-indigo-500 text-white flex items-center justify-center hover:bg-indigo-600 text-xs font-bold">+</button>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <div class="border-t border-zinc-100 dark:border-zinc-700 my-3"></div>
-
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm font-semibold">Total</span>
-                            <span class="text-base font-bold text-indigo-600">Rp {{ number_format($this->cartTotal, 0, ',', '.') }}</span>
-                        </div>
-                    @endif
-
-                    <button type="button" wire:click="nextStep" {{ empty($this->cart) ? 'disabled' : '' }} class="mt-4 w-full py-2.5 rounded-xl bg-indigo-500 text-white text-sm font-bold hover:bg-indigo-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        Lanjut ke Meja →
+            {{-- Categories --}}
+            <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                @foreach ($this->categories as $cat)
+                    <button wire:click="setCategory({{ $cat->id }})"
+                        class="whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-semibold border transition
+                            {{ $activeCategoryId === $cat->id ? 'bg-orange-500 text-white border-orange-500' : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-orange-300' }}">
+                        {{ $cat->name }}
                     </button>
-                </div>
-            </div>
-        </div>
-
-    @elseif ($step == 2)
-        {{-- STEP 2: Pilih Meja --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 space-y-6">
-                <flux:card>
-                    <flux:heading size="lg" class="mb-4">Pilih Meja</flux:heading>
-
-                    <flux:select
-                        label="Nomor Meja"
-                        placeholder="-- Pilih Meja --"
-                        wire:model="table_id"
-                    >
-                        @foreach ($this->availableTables as $table)
-                            <option value="{{ $table->id }}">Meja {{ $table->number_table }}</option>
-                        @endforeach
-                    </flux:select>
-                    @error('table_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </flux:card>
-
-                <flux:card>
-                    <flux:heading size="lg" class="mb-4">Ringkasan Pesanan</flux:heading>
-                    <div class="overflow-x-auto">
-                        <flux:table>
-                            <flux:table.columns>
-                                <flux:table.column>Menu</flux:table.column>
-                                <flux:table.column class="text-right">Harga</flux:table.column>
-                                <flux:table.column class="text-right">Jumlah</flux:table.column>
-                                <flux:table.column class="text-right">Subtotal</flux:table.column>
-                            </flux:table.columns>
-                            <flux:table.rows>
-                                @foreach ($this->cart as $item)
-                                    <flux:table.row>
-                                        <flux:table.cell>{{ $item['name'] }}</flux:table.cell>
-                                        <flux:table.cell class="text-right">Rp {{ number_format($item['price'], 0, ',', '.') }}</flux:table.cell>
-                                        <flux:table.cell class="text-right">{{ $item['quantity'] }}</flux:table.cell>
-                                        <flux:table.cell class="text-right font-medium">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</flux:table.cell>
-                                    </flux:table.row>
-                                @endforeach
-                            </flux:table.rows>
-                        </flux:table>
-                    </div>
-                </flux:card>
+                @endforeach
+                @if ($activeCategoryId)
+                    <button wire:click="setCategory(null)" class="whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-200">
+                        ✕ Semua
+                    </button>
+                @endif
             </div>
 
-            <div class="lg:col-span-1">
-                <flux:card class="sticky top-6">
-                    <flux:heading size="sm" class="mb-4">Total</flux:heading>
-                    <div class="space-y-2 text-sm">
-                        @foreach ($this->cart as $item)
-                            <div class="flex justify-between">
-                                <span class="text-zinc-500 truncate">{{ $item['name'] }} x{{ $item['quantity'] }}</span>
-                                <span>Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                    <flux:separator class="my-3" />
-                    <div class="flex justify-between items-center">
-                        <span class="font-semibold">Total Pesanan</span>
-                        <span class="font-bold text-xl text-indigo-600">Rp {{ number_format($this->cartTotal, 0, ',', '.') }}</span>
-                    </div>
+            {{-- Menu Grid --}}
+            <div class="flex-1 overflow-y-auto">
+                @php $groups = $this->filteredMenus; @endphp
 
-                    <div class="mt-6 space-y-2">
-                        <flux:button variant="primary" class="w-full" wire:click="nextStep">
-                            Lanjut ke Pembayaran
-                        </flux:button>
-                        <flux:button variant="ghost" class="w-full" wire:click="previousStep">
-                            Kembali
-                        </flux:button>
-                    </div>
-                </flux:card>
-            </div>
-        </div>
-
-    @elseif ($step == 3)
-        {{-- STEP 3: Pembayaran --}}
-        <form wire:submit.prevent="save">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 space-y-6">
-                    <flux:card>
-                        <flux:heading size="lg" class="mb-4">Metode Pembayaran</flux:heading>
-
-                        <flux:select
-                            label="Metode Bayar"
-                            placeholder="-- Pilih Metode --"
-                            wire:model="payment_method"
-                        >
-                            <option value="Cash">Cash</option>
-                            <option value="Transfer">Transfer</option>
-                            <option value="QRIS">QRIS</option>
-                            <option value="Debit Card">Debit Card</option>
-                            <option value="Credit Card">Credit Card</option>
-                        </flux:select>
-                        @error('payment_method') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        @error('table_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </flux:card>
-
-                    <flux:card>
-                        <flux:heading size="lg" class="mb-4">Ringkasan Pesanan</flux:heading>
-                        <div class="overflow-x-auto">
-                            <flux:table>
-                                <flux:table.columns>
-                                    <flux:table.column>Menu</flux:table.column>
-                                    <flux:table.column class="text-right">Harga</flux:table.column>
-                                    <flux:table.column class="text-right">Jumlah</flux:table.column>
-                                    <flux:table.column class="text-right">Subtotal</flux:table.column>
-                                </flux:table.columns>
-                                <flux:table.rows>
-                                    @foreach ($this->cart as $item)
-                                        <flux:table.row>
-                                            <flux:table.cell>{{ $item['name'] }}</flux:table.cell>
-                                            <flux:table.cell class="text-right">Rp {{ number_format($item['price'], 0, ',', '.') }}</flux:table.cell>
-                                            <flux:table.cell class="text-right">{{ $item['quantity'] }}</flux:table.cell>
-                                            <flux:table.cell class="text-right font-medium">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</flux:table.cell>
-                                        </flux:table.row>
+                @if ($groups->isEmpty())
+                    <div class="flex items-center justify-center h-full text-zinc-400 text-sm">Menu tidak ditemukan</div>
+                @else
+                    <div class="space-y-6">
+                        @foreach ($groups as $categoryName => $menus)
+                            <div>
+                                <h3 class="text-sm font-bold mb-3 dark:text-white">{{ $categoryName }}</h3>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    @foreach ($menus as $menu)
+                                        @php
+                                            $inCart = collect($this->cart)->firstWhere('menu_id', $menu->id);
+                                            $qty = $inCart['quantity'] ?? 0;
+                                        @endphp
+                                        <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 overflow-hidden {{ $qty > 0 ? 'ring-2 ring-orange-500' : '' }}">
+                                            <div class="h-36 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-900 relative">
+                                                @if ($menu->image)
+                                                    <img src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <div class="w-full h-full flex items-center justify-center text-xs text-zinc-400">No Photo</div>
+                                                @endif
+                                                @if ($qty > 0)
+                                                    <div class="absolute top-1.5 right-1.5 size-5 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center">{{ $qty }}</div>
+                                                @endif
+                                            </div>
+                                            <div class="p-2.5">
+                                                <p class="text-sm font-semibold truncate dark:text-white">{{ $menu->name }}</p>
+                                                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Rp {{ number_format($menu->price, 0, ',', '.') }}</p>
+                                                @if ($qty > 0)
+                                                    <div class="flex items-center justify-between mt-2">
+                                                        <div class="flex items-center gap-2">
+                                                            <button type="button" wire:click="updateQuantity({{ $menu->id }}, -1)" class="size-7 rounded-lg bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-600 transition text-sm font-bold">−</button>
+                                                            <span class="w-5 text-center text-sm font-bold">{{ $qty }}</span>
+                                                            <button type="button" wire:click="updateQuantity({{ $menu->id }}, 1)" class="size-7 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 transition text-sm font-bold">+</button>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <button type="button" wire:click="addToCart({{ $menu->id }})" class="w-full mt-2 py-1.5 rounded-lg bg-orange-500 text-white text-xs font-semibold hover:bg-orange-600 transition">Pesan</button>
+                                                @endif
+                                            </div>
+                                        </div>
                                     @endforeach
-                                </flux:table.rows>
-                            </flux:table>
-                        </div>
-                    </flux:card>
-                </div>
-
-                <div class="lg:col-span-1">
-                    <flux:card class="sticky top-6">
-                        <flux:heading size="sm" class="mb-4">Konfirmasi Pesanan</flux:heading>
-
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-zinc-500">Meja</span>
-                                <span class="font-medium">
-                                    @php $selectedTable = $this->availableTables->firstWhere('id', (int) $table_id); @endphp
-                                    Meja {{ $selectedTable?->number_table ?? '-' }}
-                                </span>
+                                </div>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-zinc-500">Tanggal</span>
-                                <span>{{ now()->format('d-m-Y') }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-zinc-500">Metode Bayar</span>
-                                <span class="font-medium">{{ $payment_method ?: '-' }}</span>
-                            </div>
-                            <flux:separator />
-                            <div class="flex justify-between">
-                                <span class="font-semibold">Total Bayar</span>
-                                <span class="font-bold text-xl text-indigo-600">Rp {{ number_format($this->cartTotal, 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 space-y-2">
-                            <flux:button type="submit" variant="primary" class="w-full">
-                                Buat Pesanan
-                            </flux:button>
-                            <flux:button variant="ghost" class="w-full" wire:click="previousStep">
-                                Kembali
-                            </flux:button>
-                        </div>
-                    </flux:card>
-                </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
-        </form>
-    @endif
+
+        </div>
+
+        {{-- Right: Cart + Checkout --}}
+        <div class="w-80 shrink-0">
+            <div class="sticky top-0 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex flex-col max-h-[calc(100vh-12rem)]">
+                {{-- Header --}}
+                <div class="flex items-center justify-between p-4 pb-2">
+                    <h3 class="text-sm font-bold dark:text-white">Pesanan</h3>
+                    <span class="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-semibold">{{ $this->cartCount }} item</span>
+                </div>
+
+                {{-- Cart Items --}}
+                <div class="flex-1 overflow-y-auto px-4 space-y-2">
+                    @if (empty($this->cart))
+                        <div class="text-center py-8">
+                            <svg class="size-10 mx-auto text-zinc-300 dark:text-zinc-600 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
+                            <p class="text-xs text-zinc-400">Belum ada item dipilih</p>
+                        </div>
+                    @else
+                        @foreach ($this->cart as $item)
+                            <div class="flex items-center gap-2 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">{{ $item['name'] }}</p>
+                                    <p class="text-xs text-zinc-500">Rp {{ number_format($item['price'], 0, ',', '.') }}</p>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button type="button" wire:click="updateQuantity({{ $item['menu_id'] }}, -1)" class="size-6 rounded bg-zinc-100 dark:bg-zinc-700 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-600 text-xs font-bold">−</button>
+                                    <span class="w-5 text-center text-xs font-bold">{{ $item['quantity'] }}</span>
+                                    <button type="button" wire:click="updateQuantity({{ $item['menu_id'] }}, 1)" class="size-6 rounded bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 text-xs font-bold">+</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+
+                {{-- Checkout --}}
+                @if (!empty($this->cart))
+                    <div class="border-t border-zinc-100 dark:border-zinc-700 p-4 space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1 block">Meja</label>
+                            <select wire:model="table_id" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white">
+                                <option value="">-- Pilih Meja --</option>
+                                @foreach ($this->availableTables as $table)
+                                    <option value="{{ $table->id }}">Meja {{ $table->number_table }}</option>
+                                @endforeach
+                            </select>
+                            @error('table_id') <p class="text-xs text-red-500 mt-0.5">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1 block">Metode Bayar</label>
+                            <select wire:model="payment_method" class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark:text-white">
+                                <option value="">-- Pilih Metode --</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Transfer">Transfer</option>
+                                <option value="QRIS">QRIS</option>
+                                <option value="Debit Card">Debit Card</option>
+                                <option value="Credit Card">Credit Card</option>
+                            </select>
+                            @error('payment_method') <p class="text-xs text-red-500 mt-0.5">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="border-t border-zinc-100 dark:border-zinc-700 pt-3 space-y-1.5">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-zinc-500">Sub Total</span>
+                                <span class="font-medium">Rp {{ number_format($this->cartTotal, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm font-bold">
+                                <span>Total</span>
+                                <span class="text-orange-500 text-base">Rp {{ number_format($this->cartTotal, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+
+                        <button type="button" wire:click="save"
+                            class="w-full py-2.5 rounded-xl bg-orange-500 text-white text-sm font-bold hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            {{ empty($this->cart) ? 'disabled' : '' }}>
+                            Buat Pesanan
+                        </button>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+    </div>
 </div>
