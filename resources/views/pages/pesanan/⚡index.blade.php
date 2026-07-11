@@ -16,6 +16,34 @@ new class extends Component
             ->latest()
             ->paginate(10);
     }
+
+    public function markAsCompleted($id)
+    {
+        $pesanan = Pesanan::with('table')->findOrFail($id);
+
+        if ($pesanan->status === 'selesai') {
+            session()->flash('info', 'Pesanan #' . $id . ' sudah selesai');
+            return;
+        }
+
+        \DB::beginTransaction();
+
+        try {
+            $pesanan->update(['status' => 'selesai']);
+
+            if ($pesanan->table) {
+                $pesanan->table->update(['status' => 'tersedia']);
+            }
+
+            \DB::commit();
+
+            session()->flash('success', 'Pesanan #' . $id . ' selesai, meja tersedia kembali');
+
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            session()->flash('error', 'Gagal: ' . $e->getMessage());
+        }
+    }
 };
 
 ?>
@@ -110,6 +138,16 @@ new class extends Component
                                 />
 
                                 <flux:menu>
+
+                                    @if ($pesanan->status !== 'selesai' && $pesanan->status !== 'dibatalkan')
+                                        <flux:menu.item
+                                            icon="check-circle"
+                                            wire:click="markAsCompleted({{ $pesanan->id }})"
+                                        >
+                                            Selesai
+                                        </flux:menu.item>
+                                        <flux:menu.separator />
+                                    @endif
 
                                     <flux:menu.item
                                         icon="pencil"
