@@ -12,8 +12,8 @@ class Table extends Model
         'status',
     ];
 
-    public function orders()
+    public function pesanans()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Pesanan::class);
     }
 }

@@ -21,6 +21,9 @@
                     <flux:sidebar.item icon="book-open" :href="route('menu.index')" :current="request()->routeIs('menu.index')" wire:navigate>
                         {{ __('Menus') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="shopping-cart" :href="route('order.create')" :current="request()->routeIs('order.create')" wire:navigate>
+                        {{ __('Pesanan Baru') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="document-text" :href="route('detail-pesanan.index')" :current="request()->routeIs('detail-pesanan.index')" wire:navigate>
                         {{ __('Detail Pesanan') }}
                     </flux:sidebar.item>

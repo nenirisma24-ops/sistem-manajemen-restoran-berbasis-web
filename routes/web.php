@@ -6,6 +6,7 @@ Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::livewire('/order-baru', 'pages::order.create')->name('order.create');
     Route::livewire('/categories', 'pages::category.index')->name('category.index');
     Route::livewire('/menus', 'pages::menu.index')->name('menu.index');
     Route::livewire('/detail-pesanan', 'pages::detail_pesanan.index')->name('detail-pesanan.index');

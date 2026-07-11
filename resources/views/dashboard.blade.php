@@ -75,8 +75,18 @@
                             <span class="hidden sm:inline">&mdash; </span>Sistem Manajemen Restoran
                         </p>
                     </div>
-                    <div>
+                    <div class="flex items-center gap-3">
                         <flux:badge color="lime" class="font-semibold">● Sistem Aktif</flux:badge>
+                        <flux:button
+                            variant="primary"
+                            size="sm"
+                            icon="shopping-cart"
+                            class="!bg-white !text-indigo-900 hover:!bg-zinc-100"
+                            :href="route('order.create')"
+                            wire:navigate
+                        >
+                            Buat Pesanan Baru
+                        </flux:button>
                     </div>
                 </div>
             </div>
