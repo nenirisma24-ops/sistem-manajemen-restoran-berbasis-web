@@ -1,10 +1,9 @@
 @php
+    $role = auth()->user()->role ?? 'guest';
+
     // 1. Mengambil data asli dari Database
     $totalOrders = \App\Models\Pesanan::count();
-    
-    // Sudah diubah ke 'total_price'
     $totalRevenue = \App\Models\Pesanan::where('status', 'selesai')->sum('total_price'); 
-    
     $totalMenus = \App\Models\Menu::count();
     $totalTables = \App\Models\Table::count();
 
@@ -13,8 +12,11 @@
     $recentMenus = \App\Models\Menu::latest()->take(5)->get();
 
     // 2. Memasukkan data dari database ke dalam array untuk tampilan kotak (cards)
-    $stats = [
-        [
+    $stats = [];
+
+    // Sembunyikan Total Pesanan untuk Pelayan dan Customer
+    if (!in_array($role, ['pelayan', 'customer'])) {
+        $stats[] = [
             'label' => 'Total Pesanan',
             'value' => $totalOrders,
             'desc' => 'Seluruh pesanan masuk',
@@ -22,8 +24,12 @@
             'gradient' => 'from-indigo-400 to-purple-600',
             'bg' => 'bg-indigo-50 dark:bg-indigo-950/30',
             'text' => 'text-indigo-600 dark:text-indigo-400',
-        ],
-        [
+        ];
+    }
+
+    // Sembunyikan Total Pendapatan untuk Pelayan dan Customer (Hanya Admin & Kasir)
+    if (in_array($role, ['admin', 'kasir'])) {
+        $stats[] = [
             'label' => 'Total Pendapatan',
             'value' => 'Rp ' . number_format($totalRevenue, 0, ',', '.'),
             'desc' => 'Pendapatan pesanan selesai',
@@ -31,25 +37,28 @@
             'gradient' => 'from-emerald-400 to-teal-600',
             'bg' => 'bg-emerald-50 dark:bg-emerald-950/30',
             'text' => 'text-emerald-600 dark:text-emerald-400',
-        ],
-        [
-            'label' => 'Total Menu',
-            'value' => $totalMenus,
-            'desc' => 'Menu makanan & minuman',
-            'icon' => 'book-open',
-            'gradient' => 'from-orange-400 to-rose-500',
-            'bg' => 'bg-orange-50 dark:bg-orange-950/30',
-            'text' => 'text-orange-600 dark:text-orange-400',
-        ],
-        [
-            'label' => 'Total Meja',
-            'value' => $totalTables,
-            'desc' => 'Kapasitas meja tersedia',
-            'icon' => 'squares-2x2',
-            'gradient' => 'from-sky-400 to-blue-600',
-            'bg' => 'bg-sky-50 dark:bg-sky-950/30',
-            'text' => 'text-sky-600 dark:text-sky-400',
-        ],
+        ];
+    }
+
+    // Total Menu dan Meja tetap ditampilkan
+    $stats[] = [
+        'label' => 'Total Menu',
+        'value' => $totalMenus,
+        'desc' => 'Menu makanan & minuman',
+        'icon' => 'book-open',
+        'gradient' => 'from-orange-400 to-rose-500',
+        'bg' => 'bg-orange-50 dark:bg-orange-950/30',
+        'text' => 'text-orange-600 dark:text-orange-400',
+    ];
+
+    $stats[] = [
+        'label' => 'Total Meja',
+        'value' => $totalTables,
+        'desc' => 'Kapasitas meja tersedia',
+        'icon' => 'squares-2x2',
+        'gradient' => 'from-sky-400 to-blue-600',
+        'bg' => 'bg-sky-50 dark:bg-sky-950/30',
+        'text' => 'text-sky-600 dark:text-sky-400',
     ];
 @endphp
 
@@ -77,16 +86,20 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <flux:badge color="lime" class="font-semibold">● Sistem Aktif</flux:badge>
-                        <flux:button
-                            variant="primary"
-                            size="sm"
-                            icon="shopping-cart"
-                            class="!bg-white !text-indigo-900 hover:!bg-zinc-100"
-                            :href="route('order.create')"
-                            wire:navigate
-                        >
-                            Buat Pesanan Baru
-                        </flux:button>
+                        
+                        {{-- Tombol Buat Pesanan Baru disembunyikan untuk Pelayan --}}
+                        @if (in_array($role, ['admin', 'kasir', 'customer']))
+                            <flux:button
+                                variant="primary"
+                                size="sm"
+                                icon="shopping-cart"
+                                class="!bg-white !text-indigo-900 hover:!bg-zinc-100"
+                                :href="route('order.create')"
+                                wire:navigate
+                            >
+                                Buat Pesanan Baru
+                            </flux:button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -126,7 +139,7 @@
                             <flux:heading size="lg">Pesanan Terbaru</flux:heading>
                             <flux:subheading class="text-xs">Daftar pesanan yang sedang atau baru diproses</flux:subheading>
                         </div>
-                        <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('pesanan.index')" wire:navigate>
+                        <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('pesanan.index', [], false)" wire:navigate>
                             Lihat semua
                         </flux:button>
                     </div>
@@ -148,11 +161,9 @@
                                         Meja {{ $order->table_id ?? '-' }}
                                     </flux:table.cell>
                                     <flux:table.cell>
-                                        {{-- Sudah diubah ke 'total_price' --}}
                                         Rp {{ number_format($order->total_price, 0, ',', '.') }}
                                     </flux:table.cell>
                                     <flux:table.cell>
-                                        {{-- Menyesuaikan dengan Rule status yang ada di Form Anda --}}
                                         @if (strtolower($order->status) === 'selesai')
                                             <flux:badge size="sm" color="green" inset="top bottom">Selesai</flux:badge>
                                         @elseif (strtolower($order->status) === 'pending')
@@ -186,7 +197,7 @@
                             <flux:heading size="lg">Menu Terbaru</flux:heading>
                             <flux:subheading class="text-xs">Menu yang baru ditambahkan ke sistem</flux:subheading>
                         </div>
-                        <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('menu.index')" wire:navigate>
+                        <flux:button variant="ghost" size="sm" icon="arrow-right" :href="route('menu.index', [], false)" wire:navigate>
                             Lihat semua
                         </flux:button>
                     </div>
